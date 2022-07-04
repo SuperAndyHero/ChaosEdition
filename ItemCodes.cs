@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.GameContent;
 
 namespace ChaosEdition
 {
@@ -49,13 +50,13 @@ namespace ChaosEdition
 
         public override bool PreDrawInInventory(Item item, SpriteBatch spriteBatch, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
         {
-            spriteBatch.Draw(Main.itemTexture[item.type], position, frame, drawColor, 0f, origin - (Main.itemTexture[item.type].Size() * itemscale), scale * itemscale, default, default);
+            spriteBatch.Draw(TextureAssets.Item[item.type].Value, position, frame, drawColor, 0f, origin - (TextureAssets.Item[item.type].Size() * itemscale), scale * itemscale, default, default);
             return false;
         }
 
         public override bool PreDrawInWorld(Item item, SpriteBatch spriteBatch, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
         {
-            spriteBatch.Draw(Main.itemTexture[item.type], item.Center - Main.screenPosition, null, lightColor, rotation, item.Size * 0.5f, scale * itemscale, default, default);
+            spriteBatch.Draw(TextureAssets.Item[item.type].Value, item.Center - Main.screenPosition, null, lightColor, rotation, item.Size * 0.5f, scale * itemscale, default, default);
             return false;
         }
     }

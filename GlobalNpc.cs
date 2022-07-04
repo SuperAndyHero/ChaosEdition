@@ -20,34 +20,32 @@ namespace ChaosEdition
         {
             bool RunAI = base.PreAI(npc);
             foreach (NpcCode code in ChaosEdition.NpcCodes)
-                RunAI = RunAI && code.PreAI(npc, npc.modNPC);
+                RunAI = RunAI && code.PreAI(npc, npc.ModNPC);
             return RunAI;
         }
 
         public override void AI(NPC npc)
         {
             foreach (NpcCode code in ChaosEdition.NpcCodes)
-                code.AI(npc, npc.modNPC);
+                code.AI(npc, npc.ModNPC);
         }
 
         public override void DrawEffects(NPC npc, ref Color drawColor)
         {
             foreach (NpcCode code in ChaosEdition.NpcCodes)
-                code.DrawEffects(npc, ref drawColor, npc.modNPC);
+                code.DrawEffects(npc, ref drawColor, npc.ModNPC);
         }
-
-        public override bool PreDraw(NPC npc, SpriteBatch spriteBatch, Color drawColor)
+        public override bool PreDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
         {
-            bool DrawNpc = base.PreDraw(npc, spriteBatch, drawColor);
+            bool DrawNpc = base.PreDraw(npc, spriteBatch, screenPos, drawColor);
             foreach (NpcCode code in ChaosEdition.NpcCodes)
-                DrawNpc = DrawNpc && code.PreDraw(npc, spriteBatch, drawColor, npc.modNPC);
+                DrawNpc = DrawNpc && code.PreDraw(npc, spriteBatch, drawColor, npc.ModNPC);
             return DrawNpc;
         }
-
-        public override void PostDraw(NPC npc, SpriteBatch spriteBatch, Color drawColor)
+        public override void PostDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
         {
             foreach (NpcCode code in ChaosEdition.NpcCodes)
-                code.PostDraw(npc, spriteBatch, drawColor, npc.modNPC);
+                code.PostDraw(npc, spriteBatch, drawColor, npc.ModNPC);
         }
     }
 }

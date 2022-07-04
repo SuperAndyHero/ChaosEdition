@@ -26,7 +26,7 @@ namespace ChaosEdition
                 if (player.itemTime == 0)
                 {
                     player.inventory[player.selectedItem].noGrabDelay = Main.rand.Next(100, 400);
-                    player.QuickSpawnClonedItem(player.inventory[player.selectedItem], player.inventory[player.selectedItem].stack);
+                    player.QuickSpawnClonedItem(player.GetSource_DropAsItem(), player.inventory[player.selectedItem], player.inventory[player.selectedItem].stack);
                     player.inventory[player.selectedItem].TurnToAir();
                 }
                 counter = Main.rand.Next(550, 2000);
@@ -52,7 +52,7 @@ namespace ChaosEdition
                 if (player.itemTime == 0)
                 {
                     player.inventory[slot].noGrabDelay = Main.rand.Next(100, 400);
-                    player.QuickSpawnClonedItem(player.inventory[slot], player.inventory[slot].stack);
+                    player.QuickSpawnClonedItem(player.GetSource_DropAsItem(), player.inventory[slot], player.inventory[slot].stack);
                     player.inventory[slot].TurnToAir();
                 }
                 counter = Main.rand.Next(550, 2000);
@@ -172,7 +172,7 @@ namespace ChaosEdition
         {
             if (counter <= 0)
             {
-                Projectile.NewProjectile(player.Center, new Vector2(Main.rand.NextFloat(-0.1f, 0.1f), 0), projectileType, 100, 1, player.whoAmI);
+                Projectile.NewProjectile(player.GetSource_GiftOrReward(), player.Center, new Vector2(Main.rand.NextFloat(-0.1f, 0.1f), 0), projectileType, 100, 1, player.whoAmI);
                 counter = 40;
             }
             counter--;
@@ -197,7 +197,7 @@ namespace ChaosEdition
                     else
                         WorldGen.GrowEpicTree((int)(player.Bottom.X / 16) - i, (int)(player.Bottom.Y / 16) - j);
 
-                    if (Main.rand.Next(25) == 0)
+                    if (Main.rand.NextBool(25))
                         WorldGen.GrowPalmTree((int)(player.Bottom.X / 16) - i, (int)(player.Bottom.Y / 16) - j);
                     else
                         WorldGen.GrowCactus((int)(player.Bottom.X / 16) - i, (int)(player.Bottom.Y / 16) - j);
@@ -358,14 +358,26 @@ namespace ChaosEdition
 
         public override int NextExtraDelaySeconds => 40;
         bool ran = false;
+        Player playerInstance;//unsure of multiplater compat
+
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (!ran)
             {
-                int index = Item.NewItem(player.position, ItemID.DirtRod);
+                playerInstance = player;
+                int index = Item.NewItem(player.GetSource_GiftOrReward(), player.position, ItemID.DirtRod);
                 Main.item[index].damage = Main.hardMode ? Main.rand.Next(400, 1600) : Main.rand.Next(180, 350);
 
                 ran = true;
+            }
+        }
+
+        public override void OnRemove()
+        {
+            foreach(Item item in playerInstance.inventory)
+            {
+                if (item.type == ItemID.DirtRod)
+                    item.TurnToAir();
             }
         }
     }
@@ -383,7 +395,7 @@ namespace ChaosEdition
             {
                 Main.NewText("Ho Ho Ho!", new Color(50, 255, 80));
                 for(int i = -10; i < 10; i++)
-                    Item.NewItem(player.position + new Vector2(i * 50, -600), Main.rand.Next(50) == 0 ? ItemID.Coal : ItemID.Present);
+                    Item.NewItem(player.GetSource_GiftOrReward(), player.position + new Vector2(i * 50, -600), Main.rand.Next(50) == 0 ? ItemID.Coal : ItemID.Present);
                 ran = true;
             }
         }

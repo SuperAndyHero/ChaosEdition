@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
@@ -14,52 +15,54 @@ namespace ChaosEdition
 {
     public class ChaosEditionPlayer : ModPlayer
     {
-        public override void DrawEffects(PlayerDrawInfo drawInfo, ref float r, ref float g, ref float b, ref float a, ref bool fullBright)
+        public override void DrawEffects(PlayerDrawSet drawInfo, ref float r, ref float g, ref float b, ref float a, ref bool fullBright)
         {
             foreach (PlayerCode code in ChaosEdition.PlayerCodes)
                 code.DrawEffects(drawInfo, ref r, ref g, ref b, ref a, ref fullBright);
         }
-        public override void ModifyDrawHeadLayers(List<PlayerHeadLayer> layers)
-        {
-            foreach (PlayerCode code in ChaosEdition.PlayerCodes)
-                code.ModifyDrawHeadLayers(layers);
-        }
-        public override void ModifyDrawInfo(ref PlayerDrawInfo drawInfo)
+        public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo)
         {
             foreach (PlayerCode code in ChaosEdition.PlayerCodes)
                 code.ModifyDrawInfo(ref drawInfo);
         }
-        public override void ModifyDrawLayers(List<PlayerLayer> layers)
+        public override void ModifyDrawLayerOrdering(IDictionary<PlayerDrawLayer, PlayerDrawLayer.Position> positions)
         {
             foreach (PlayerCode code in ChaosEdition.PlayerCodes)
-                code.ModifyDrawLayers(layers);
+                code.ModifyDrawLayerOrdering(positions);
         }
         public override void PreUpdate()
         {
             foreach (PlayerCode code in ChaosEdition.PlayerCodes)
-                code.PreUpdatePlayer(player, this);
+                code.PreUpdatePlayer(Player, this);
         }
         public override void PostUpdate()
         {
             foreach (PlayerCode code in ChaosEdition.PlayerCodes)
-                code.PostUpdatePlayer(player, this);
-        }
-        public override void UpdateBiomeVisuals()
-        {
-            player.ManageSpecialBiomeVisuals("testInvert", ChaosEdition.ActiveEffects[typeof(InvertScreen)], player.Center);
-            player.ManageSpecialBiomeVisuals("Test2", ChaosEdition.ActiveEffects[typeof(ScreenGameboy)], player.Center);
-            player.ManageSpecialBiomeVisuals("Sandstorm", ChaosEdition.ActiveEffects[typeof(ScreenRed)], player.Center);
-            player.ManageSpecialBiomeVisuals("BloodMoon", ChaosEdition.ActiveEffects[typeof(ScreenRed)], player.Center);
-            player.ManageSpecialBiomeVisuals("ChaosEdition:Moonlord", ChaosEdition.ActiveEffects[typeof(ScreenMoonlord)], player.Center);
+                code.PostUpdatePlayer(Player, this);
         }
 
         public override void PreUpdateBuffs()
         {
             if (ChaosEdition.ActiveEffects[typeof(GravityFlip)])
             {
-                player.gravControl = true;
-                if (player.position.Y > 1500)
-                    player.gravDir = -1f;
+                Player.gravControl = true;
+                if (Player.position.Y > 1500)
+                    Player.gravDir = -1f;
+            }
+        }
+    }
+
+    public class ChaosEditionSceneEffect : ModSceneEffect
+    {
+        public override void SpecialVisuals(Player player, bool isActive)
+        {
+            if (isActive)
+            {
+                player.ManageSpecialBiomeVisuals("testInvert", ChaosEdition.ActiveEffects[typeof(InvertScreen)], player.Center);
+                player.ManageSpecialBiomeVisuals("Test2", ChaosEdition.ActiveEffects[typeof(ScreenGameboy)], player.Center);
+                player.ManageSpecialBiomeVisuals("Sandstorm", ChaosEdition.ActiveEffects[typeof(ScreenRed)], player.Center);
+                player.ManageSpecialBiomeVisuals("BloodMoon", ChaosEdition.ActiveEffects[typeof(ScreenRed)], player.Center);
+                player.ManageSpecialBiomeVisuals("ChaosEdition:Moonlord", ChaosEdition.ActiveEffects[typeof(ScreenMoonlord)], player.Center);
             }
         }
     }

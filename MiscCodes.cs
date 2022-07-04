@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.GameContent;
 using Terraria.ModLoader;
 
 namespace ChaosEdition
@@ -16,7 +17,7 @@ namespace ChaosEdition
     {
         public override void Draw(SpriteBatch sb)
         {
-            sb.Draw(Main.blackTileTexture, new Rectangle(0, 0, 30, 30), Color.Red);
+            sb.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, 30, 30), Color.Red);
         }
 
         public override void Update()

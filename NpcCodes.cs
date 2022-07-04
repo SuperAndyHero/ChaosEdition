@@ -20,7 +20,7 @@ namespace ChaosEdition
 
         public EnemyHoming() : base()
         {
-            Main.windSpeed = 5;
+            Main.windSpeedCurrent = 5;
             Main.numClouds += 100;
             Main.NewText("The winds begin to pick up...", new Color(200, 200, 255));
             Main.LocalPlayer.gravity = 0.5f;
@@ -28,7 +28,7 @@ namespace ChaosEdition
 
         public override void AI(NPC npc, ModNPC modNpc = null)
         {
-            if(Main.rand.Next(3) == 0)
+            if(Main.rand.NextBool(3))
                 Dust.NewDustPerfect(npc.Top + new Vector2(Main.rand.Next(-(npc.width / 2), (npc.width / 2) + 1), Main.rand.Next(0, npc.height)), Terraria.ID.DustID.Smoke, new Vector2(Main.rand.NextFloat(-2f, 2f), Main.rand.NextFloat(-0.5f, 0.1f)));
             npc.velocity += Vector2.Normalize(Main.LocalPlayer.position - npc.position) * (((float)Math.Sin(Main.GameUpdateCount * 0.03f) * 0.1f) + 0.35f);
             npc.velocity += new Vector2((float)Math.Sin(Main.GameUpdateCount * 0.03f) * 0.25f,  -0.15f);

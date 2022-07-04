@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
@@ -33,10 +34,10 @@ namespace ChaosEdition
                 DrawTile = DrawTile && code.PreDraw(i, j, type, spriteBatch);
             return DrawTile;
         }
-        public override void DrawEffects(int i, int j, int type, SpriteBatch spriteBatch, ref Color drawColor, ref int nextSpecialDrawIndex)
+        public override void DrawEffects(int i, int j, int type, SpriteBatch spriteBatch, ref TileDrawInfo drawData)
         {
             foreach (TileCode code in ChaosEdition.TileCodes)
-                code.DrawEffects(i, j, type, spriteBatch, ref drawColor, ref nextSpecialDrawIndex);
+                code.DrawEffects(i, j, type, spriteBatch, ref drawData);
         }
         public override void PostDraw(int i, int j, int type, SpriteBatch spriteBatch)
         {

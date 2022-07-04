@@ -130,11 +130,11 @@ namespace ChaosEdition
 
         public override void AI(Projectile projectile)
         {
-            if (Main.rand.Next(chance) == 0 && projectile.active)
+            if (Main.rand.NextBool(chance)&& projectile.active)
             {
                 projectile.active = false;
                 projectile.damage = 0;
-                int npcindex = NPC.NewNPC((int)projectile.position.X, (int)projectile.position.Y, critterType);
+                int npcindex = NPC.NewNPC(projectile.GetSource_FromThis(), (int)projectile.position.X, (int)projectile.position.Y, critterType);
                 Main.npc[npcindex].velocity = projectile.velocity.RotatedBy(Main.rand.NextFloat((float)-Math.PI, (float)Math.PI));//Vector2.UnitY.RotatedBy(Main.rand.NextFloat((float)-Math.PI, (float)Math.PI)) * 2;
             }
         }

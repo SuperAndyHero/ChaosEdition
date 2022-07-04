@@ -7,12 +7,14 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.Graphics.Effects;
 using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 using static Terraria.ModLoader.ModContent;
+using static ChaosEdition.ChaosEdition;
 
 namespace ChaosEdition
 {
@@ -48,7 +50,7 @@ namespace ChaosEdition
 
         public override void Load()
         {
-            On.Terraria.Main.DrawPlayers += DrawPlayers;
+            On.Terraria.DataStructures.PlayerDrawLayers.DrawPlayer_RenderAllLayers += PostDrawPlayerLayer;
 
             IEnumerable<Type> arr = typeof(Code).Assembly.GetTypes().Where(TheType => TheType.IsClass && !TheType.IsAbstract && TheType.IsSubclassOf(typeof(Code)));
             foreach (Type type in arr)
@@ -59,27 +61,27 @@ namespace ChaosEdition
             Loaded = true;
         }
 
-        private static void DrawPlayers(On.Terraria.Main.orig_DrawPlayers orig, Main self)
+        private void PostDrawPlayerLayer(On.Terraria.DataStructures.PlayerDrawLayers.orig_DrawPlayer_RenderAllLayers orig, ref PlayerDrawSet drawinfo)
         {
-            Main.spriteBatch.Begin(default, default, SamplerState.PointClamp, default, default, default);
+            //Main.spriteBatch.Begin(default, default, SamplerState.PointClamp, default, default, default);
             foreach(Player player in Main.player)
             {
                 if (player.active)
                     foreach (PlayerCode code in PlayerCodes)
                         code.PreDrawPlayer(Main.spriteBatch, player);
             }
-            Main.spriteBatch.End();
+            //Main.spriteBatch.End();
 
-            orig(self);
+            orig(ref drawinfo);
 
-            Main.spriteBatch.Begin(default, default, SamplerState.PointClamp, default, default, default);
+            //Main.spriteBatch.Begin(default, default, SamplerState.PointClamp, default, default, default);
             foreach (Player player in Main.player)
             {
                 if (player.active)
                     foreach (PlayerCode code in PlayerCodes)
                         code.PostDrawPlayer(Main.spriteBatch, player);
             }
-            Main.spriteBatch.End();
+            //Main.spriteBatch.End();
         }
 
         public static void ClearAllCodes()
@@ -106,89 +108,9 @@ namespace ChaosEdition
                 code.Remove();
         }
 
-        public override void PostUpdateInput()
-        {
-            foreach (MenuCode code in MenuCodes)
-                code.Check();
-
-            foreach (NpcCode code in NpcCodes)
-                code.Check();
-
-            foreach (PlayerCode code in PlayerCodes)
-                code.Check();
-
-            foreach (TileCode code in TileCodes)
-                code.Check();
-
-            foreach (ItemCode code in ItemCodes)
-                code.Check();
-
-            foreach (ProjectileCode code in ProjectileCodes)
-                code.Check();
-
-            foreach (MiscCode code in MiscCodes)
-                code.Check();
-
-            foreach ((Code code, List<Code> list) pair in RemovalList)
-                pair.list.Remove(pair.code);
-
-            if(AutoSelectingCodes && ActiveCodeCount < MaxActiveCodes && TimeUntilNext.TotalSeconds <= 0 && Loaded)
-            {
-                CurrentExtraDelay = new TimeSpan();
-                int tries = 0;
-                const int maxTries = 5;
-                while(tries < maxTries)
-                {
-                    int index = Main.rand.Next(CodeTypes.Length);
-                    if (!ActiveEffects[CodeTypes[index]])
-                    {
-                        Activator.CreateInstance(CodeTypes[index]);
-                        return;
-                    }
-                    else
-                        tries++;
-                    if (tries >= maxTries)
-                    {
-                        LastCode = DateTime.Now.Subtract(NewCodeDelay);//.Subtract(CodeDelay).Add(RetryCodeDelay);
-                        CurrentExtraDelay += RetryCodeDelay;
-                        return;
-                    }
-                }
-            }
-
-
-            foreach (MiscCode code in MiscCodes)
-                code.Update();
-        }
-
-        public override void PostDrawInterface(SpriteBatch spriteBatch)
-        {
-            foreach (MenuCode code in MenuCodes)
-                code.PostDrawInterface(spriteBatch);
-
-            foreach (MiscCode code in MiscCodes)
-                code.Draw(spriteBatch);
-
-            Utils.DrawBorderString(spriteBatch, "Time since last: " + LastCode.ToShortTimeString(), new Vector2(5, 15), Color.White * 0.75f);
-            Utils.DrawBorderString(spriteBatch, "Time till next: " + Math.Max(0, (int)TimeUntilNext.TotalSeconds), new Vector2(5, 30), Color.White * 0.75f);
-
-            //int count = 0;
-            //foreach (KeyValuePair<Type, bool> pair in ActiveEffects)
-            //{
-            //    Color color = pair.Value ? new Color(100, 255, 100) : (count % 2 == 0 ? Color.Tomato : Color.CornflowerBlue);
-            //    Utils.DrawBorderString(spriteBatch, pair.Key.Name + " : " + pair.Value, new Vector2(5, 45 + (15 * count)), color);
-            //    count++;
-            //}
-        }
-
-        public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
-        {
-            //ChaosEdition.ClearSwappedMethods();
-            foreach (MenuCode code in MenuCodes)
-                code.ModifyInterfaceLayers(layers);
-        }
 
         //if used add mod swaps too
+        //warning: this is a very unstable method that will crash the game eventually, or even corrupt save files
         public static void SwapRandomMethods(int countToSwap)
         {
             try
@@ -292,7 +214,6 @@ namespace ChaosEdition
                 ActiveDetours.Clear();
             }
         }
-
         public static void ClearSwappedMethods()
         {
             foreach (MonoMod.RuntimeDetour.Detour g in ChaosEdition.ActiveDetours)
@@ -302,16 +223,93 @@ namespace ChaosEdition
         }
     }
 
-    //public class ChaosEditionWorld : ModWorld
-    //{
+    public class ChaosEditionSystem : ModSystem
+    {
+        //updates and removes codes, also selects codes if timer is up
+        public override void PostUpdateInput()
+        {
+            foreach (MenuCode code in MenuCodes)
+                code.Check();
 
-    //}
+            foreach (NpcCode code in NpcCodes)
+                code.Check();
+
+            foreach (PlayerCode code in PlayerCodes)
+                code.Check();
+
+            foreach (TileCode code in TileCodes)
+                code.Check();
+
+            foreach (ItemCode code in ItemCodes)
+                code.Check();
+
+            foreach (ProjectileCode code in ProjectileCodes)
+                code.Check();
+
+            foreach (MiscCode code in MiscCodes)
+                code.Check();
+
+            foreach ((Code code, List<Code> list) pair in RemovalList)
+                pair.list.Remove(pair.code);
+
+            if (AutoSelectingCodes && ActiveCodeCount < MaxActiveCodes && TimeUntilNext.TotalSeconds <= 0 && Loaded)
+            {
+                CurrentExtraDelay = new TimeSpan();
+                int tries = 0;
+                const int maxTries = 5;
+                while (tries < maxTries)
+                {
+                    int index = Main.rand.Next(CodeTypes.Length);
+                    if (!ActiveEffects[CodeTypes[index]])
+                    {
+                        Activator.CreateInstance(CodeTypes[index]);
+                        return;
+                    }
+                    else
+                        tries++;
+                    if (tries >= maxTries)
+                    {
+                        LastCode = DateTime.Now.Subtract(NewCodeDelay);//.Subtract(CodeDelay).Add(RetryCodeDelay);
+                        CurrentExtraDelay += RetryCodeDelay;
+                        return;
+                    }
+                }
+            }
 
 
+            foreach (MiscCode code in MiscCodes)
+                code.Update();
+        }
 
+        //hook for codes that modify interface layers
+        public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
+        {
+            //ChaosEdition.ClearSwappedMethods();
+            foreach (MenuCode code in MenuCodes)
+                code.ModifyInterfaceLayers(layers);
+        }
 
+        //countdown timer and debug active codes list
+        public override void PostDrawInterface(SpriteBatch spriteBatch)
+        {
+            foreach (MenuCode code in MenuCodes)
+                code.PostDrawInterface(spriteBatch);
 
+            foreach (MiscCode code in MiscCodes)
+                code.Draw(spriteBatch);
 
+            Utils.DrawBorderString(spriteBatch, "Time since last: " + LastCode.ToShortTimeString(), new Vector2(5, 15), Color.White * 0.75f);
+            Utils.DrawBorderString(spriteBatch, "Time till next: " + Math.Max(0, (int)TimeUntilNext.TotalSeconds), new Vector2(5, 30), Color.White * 0.75f);
+
+            int count = 0;
+            foreach (KeyValuePair<Type, bool> pair in ActiveEffects)
+            {
+                Color color = pair.Value ? new Color(100, 255, 100) : (count % 2 == 0 ? Color.Tomato : Color.CornflowerBlue);
+                Utils.DrawBorderString(spriteBatch, pair.Key.Name + " : " + pair.Value, new Vector2(5, 45 + (15 * count)), color);
+                count++;
+            }
+        }
+    }
 
 
     public abstract class Code
@@ -380,10 +378,10 @@ namespace ChaosEdition
     //done
     public abstract class PlayerCode : Code {
         public sealed override List<Code> ContainingList => ChaosEdition.PlayerCodes;
-        public virtual void DrawEffects(PlayerDrawInfo drawInfo, ref float r, ref float g, ref float b, ref float a, ref bool fullBright) { }
-        public virtual void ModifyDrawHeadLayers(List<PlayerHeadLayer> layers) { }
-        public virtual void ModifyDrawInfo(ref PlayerDrawInfo drawInfo) { }
-        public virtual void ModifyDrawLayers(List<PlayerLayer> layers) { }
+        public virtual void DrawEffects(PlayerDrawSet drawInfo, ref float r, ref float g, ref float b, ref float a, ref bool fullBright) { }
+        //public virtual void ModifyDrawHeadLayers(List<PlayerHeadLayer> layers) { }
+        public virtual void ModifyDrawInfo(ref PlayerDrawSet drawInfo) { }
+        public virtual void ModifyDrawLayerOrdering(IDictionary<PlayerDrawLayer, PlayerDrawLayer.Position> positions) { }
 
         public virtual void PreDrawPlayer(SpriteBatch sb, Player player, ModPlayer modPlayer = null) { }
         public virtual void PostDrawPlayer(SpriteBatch sb, Player player, ModPlayer modPlayer = null) { }
@@ -403,7 +401,7 @@ namespace ChaosEdition
 
         public virtual bool PreDraw(int i, int j, int type, SpriteBatch spriteBatch) { return true; }
 
-        public virtual void DrawEffects(int i, int j, int type, SpriteBatch spriteBatch, ref Color drawColor, ref int nextSpecialDrawIndex) { }
+        public virtual void DrawEffects(int i, int j, int type, SpriteBatch spriteBatch, ref TileDrawInfo drawData) { }
 
         public virtual void PostDraw(int i, int j, int type, SpriteBatch spriteBatch) { }
 
@@ -443,9 +441,9 @@ namespace ChaosEdition
 
         public virtual void AI(Projectile projectile) { }
 
-        public virtual bool PreDraw(Projectile projectile, SpriteBatch spriteBatch, Color lightColor) { return true; }
+        public virtual bool PreDraw(Projectile projectile, ref Color lightColor) { return true; }
 
-        public virtual void PostDraw(Projectile projectile, SpriteBatch spriteBatch, Color lightColor) { }
+        public virtual void PostDraw(Projectile projectile, Color lightColor) { }
 
         public virtual void Kill(Projectile projectile, int timeLeft) { }
 

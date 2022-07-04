@@ -33,17 +33,17 @@ namespace ChaosEdition
             foreach (ProjectileCode code in ChaosEdition.ProjectileCodes)
                 code.AI(projectile);
         }
-        public override bool PreDraw(Projectile projectile, SpriteBatch spriteBatch, Color lightColor)
+        public override bool PreDraw(Projectile projectile, ref Color lightColor)
         {
-            bool DrawProj = base.PreDraw(projectile, spriteBatch, lightColor);
+            bool DrawProj = base.PreDraw(projectile, ref lightColor);
             foreach (ProjectileCode code in ChaosEdition.ProjectileCodes)
-                DrawProj = DrawProj && code.PreDraw(projectile, spriteBatch, lightColor);
+                DrawProj = DrawProj && code.PreDraw(projectile, ref lightColor);
             return DrawProj;
         }
-        public override void PostDraw(Projectile projectile, SpriteBatch spriteBatch, Color lightColor)
+        public override void PostDraw(Projectile projectile, Color lightColor)
         {
             foreach (ProjectileCode code in ChaosEdition.ProjectileCodes)
-                code.PostDraw(projectile, spriteBatch, lightColor);
+                code.PostDraw(projectile, lightColor);
         }
         public override void Kill(Projectile projectile, int timeLeft)
         {
