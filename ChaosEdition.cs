@@ -44,7 +44,7 @@ namespace ChaosEdition
         public static Dictionary<Type, bool> ActiveEffects = new Dictionary<Type, bool>();
         public static Type[] CodeTypes;
         public static bool Loaded = false;
-        public static bool AutoSelectingCodes => true;//disble for testing
+        public static bool AutoSelectingCodes => false;//disble for testing
 
         public static List<Detour> ActiveDetours = new List<Detour>();
 

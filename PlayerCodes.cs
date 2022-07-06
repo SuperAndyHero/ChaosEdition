@@ -374,11 +374,12 @@ namespace ChaosEdition
 
         public override void OnRemove()
         {
-            foreach(Item item in playerInstance.inventory)
-            {
-                if (item.type == ItemID.DirtRod)
-                    item.TurnToAir();
-            }
+            if(playerInstance != null && playerInstance.active)
+                foreach(Item item in playerInstance.inventory)
+                {
+                    if (item.type == ItemID.DirtRod)
+                        item.TurnToAir();
+                }
         }
     }
 
@@ -396,6 +397,24 @@ namespace ChaosEdition
                 Main.NewText("Ho Ho Ho!", new Color(50, 255, 80));
                 for(int i = -10; i < 10; i++)
                     Item.NewItem(player.GetSource_GiftOrReward(), player.position + new Vector2(i * 50, -600), Main.rand.Next(50) == 0 ? ItemID.Coal : ItemID.Present);
+                ran = true;
+            }
+        }
+    }
+
+    public class SmileGhost : PlayerCode
+    {
+        public override int MaxLengthSeconds => 1;
+        public override int MinLengthSeconds => 1;
+
+        public override int NextExtraDelaySeconds => 40;
+        bool ran = false;
+        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+        {
+            if (!ran)
+            {
+                Vector2 pos = player.position + (Vector2.UnitY * (Main.screenWidth * 0.75f)).RotatedByRandom(Math.Tau);
+                NPC.NewNPC(player.GetSource_GiftOrReward(), (int)pos.X, (int)pos.Y, ModContent.NPCType<Npcs.SmileGhost>());
                 ran = true;
             }
         }

@@ -40,7 +40,7 @@ namespace ChaosEdition.Items
 				else
 				{
 					//new MethodSwapCode();
-					new ChristmasGift();
+					new SmileGhost();
 				}
 			}
 			return true;
