@@ -353,8 +353,8 @@ namespace ChaosEdition
 
     public class OPDirtRod : PlayerCode
     {
-        public override int MaxLengthSeconds => 1;
-        public override int MinLengthSeconds => 1;
+        public override int MaxLengthSeconds => 45;
+        public override int MinLengthSeconds => 15;
 
         public override int NextExtraDelaySeconds => 40;
         bool ran = false;
@@ -416,6 +416,22 @@ namespace ChaosEdition
                 Vector2 pos = player.position + (Vector2.UnitY * (Main.screenWidth * 0.75f)).RotatedByRandom(Math.Tau);
                 NPC.NewNPC(player.GetSource_GiftOrReward(), (int)pos.X, (int)pos.Y, ModContent.NPCType<Npcs.SmileGhost>());
                 ran = true;
+            }
+        }
+    }
+
+    public class BoulderDrop : PlayerCode
+    {
+        public override int MaxLengthSeconds => 120;
+        public override int MinLengthSeconds => 30;
+
+        public override int NextExtraDelaySeconds => 5;
+        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+        {
+            if (Main.rand.NextBool(1000))
+            {
+                Main.NewText("dropped");
+                Projectile.NewProjectile(player.GetSource_GiftOrReward(), player.Center + new Vector2(Main.rand.Next(-1, 2), -Main.screenHeight / 1.9f), new Vector2(0, 2f), ProjectileID.Boulder, 200, 1);
             }
         }
     }

@@ -97,4 +97,44 @@ namespace ChaosEdition
             }
         }
     }
+
+    //wip
+    public class OresToLead : TileCode
+    {
+        //left out obsidian and meteorite
+        public static int[] OreList = new int[] { 
+        TileID.Copper,
+        TileID.Tin,
+        TileID.Iron,
+        TileID.Lead,
+        TileID.Silver,
+        TileID.Tungsten,
+        TileID.Gold,
+        TileID.Platinum,
+        TileID.Cobalt,
+        TileID.Palladium,
+        TileID.Orichalcum,
+        TileID.Mythril,
+        TileID.Adamantite,
+        TileID.Titanium,
+        TileID.Chlorophyte,
+        TileID.Demonite,
+        TileID.Crimtane,
+        TileID.Hellstone,
+        TileID.LunarOre
+        };
+
+        public override int MaxLengthSeconds => 240;
+        public override int MinLengthSeconds => 60;
+
+        public override int NextExtraDelaySeconds => -10;
+        public override void NearbyEffects(int i, int j, int type, bool closer)
+        {
+            if (closer && Main.rand.NextBool(1000))
+            {
+                if ((WorldGen.TileEmpty(i, j - 1) || (Main.tileCut[Main.tile[i, j - 1].TileType] && Main.tile[i, j - 1].TileType != TileID.Pots)) && WorldGen.SolidTileAllowBottomSlope(i, j))
+                    WorldGen.PlaceTile(i, j - 1, TileID.Torches, true, false, Main.LocalPlayer.whoAmI, (Main.rand.NextBool(200) ? 14 : (Main.rand.NextBool(10) ? 12 : 0)));
+            }
+        }
+    }
 }
