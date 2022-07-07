@@ -40,7 +40,7 @@ namespace ChaosEdition.Items
 				else
 				{
 					//new MethodSwapCode();
-					new BoulderDrop();
+					new LeadToGold();
 				}
 			}
 			return true;

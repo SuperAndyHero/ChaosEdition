@@ -435,4 +435,75 @@ namespace ChaosEdition
             }
         }
     }
+
+    public class OresToLead : PlayerCode
+    {
+        //left out obsidian (not an ore), meteorite (high rarity), and Lead (target ore)
+        public static HashSet<int> OreSet = new HashSet<int> {
+        TileID.Copper,
+        TileID.Tin,
+        TileID.Iron,
+        TileID.Lead,
+        TileID.Silver,
+        TileID.Tungsten,
+        TileID.Gold,
+        TileID.Platinum,
+        TileID.Cobalt,
+        TileID.Palladium,
+        TileID.Orichalcum,
+        TileID.Mythril,
+        TileID.Adamantite,
+        TileID.Titanium,
+        TileID.Chlorophyte,
+        TileID.Demonite,
+        TileID.Crimtane,
+        TileID.Hellstone,
+        TileID.LunarOre
+        };
+
+        public override int MaxLengthSeconds => 240;
+        public override int MinLengthSeconds => 60;
+
+        public override int NextExtraDelaySeconds => -10;
+        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+        {
+            if (Main.rand.NextBool(10))
+            {
+                const int radius = 10;
+
+                int i = (int)(player.Center.X / 16) + Main.rand.Next(-radius, radius + 1);
+                int j = (int)(player.Center.Y / 16) + Main.rand.Next(-radius, radius + 1);
+
+                if (OreSet.Contains(Main.tile[i, j].TileType))
+                {
+                    Main.tile[i, j].Get<TileTypeData>().Type = TileID.Lead;
+                    WorldGen.SquareTileFrame(i, j);
+                }
+            }
+        }
+    }
+
+    public class LeadToGold : PlayerCode
+    {
+        public override int MaxLengthSeconds => 200;
+        public override int MinLengthSeconds => 45;
+
+        public override int NextExtraDelaySeconds => -15;
+        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+        {
+            if (Main.rand.NextBool(7))
+            {
+                const int radius = 15;
+
+                int i = (int)(player.Center.X / 16) + Main.rand.Next(-radius, radius + 1);
+                int j = (int)(player.Center.Y / 16) + Main.rand.Next(-radius, radius + 1);
+
+                if (Main.tile[i, j].TileType == TileID.Lead || Main.tile[i, j].TileType == TileID.Iron)
+                {
+                    Main.tile[i, j].Get<TileTypeData>().Type = TileID.Gold;
+                    WorldGen.SquareTileFrame(i, j);
+                }
+            }
+        }
+    }
 }
