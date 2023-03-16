@@ -44,9 +44,14 @@ namespace ChaosEdition
         public static Dictionary<Type, bool> ActiveEffects = new Dictionary<Type, bool>();
         public static Type[] CodeTypes;
         public static bool Loaded = false;
+
+
+        public const bool DrawActiveCodes = true;
+        public const bool DrawFullCodeList = false;
         public static bool AutoSelectingCodes => false;//disble for testing
 
-        public static List<Detour> ActiveDetours = new List<Detour>();
+
+        //public static List<Detour> ActiveDetours = new List<Detour>();//for random method swapping
 
         public override void Load()
         {
@@ -108,7 +113,7 @@ namespace ChaosEdition
                 code.Remove();
         }
 
-
+        /*
         //if used add mod swaps too
         //warning: this is a very unstable method that will crash the game eventually, or even corrupt save files
         public static void SwapRandomMethods(int countToSwap)
@@ -216,11 +221,12 @@ namespace ChaosEdition
         }
         public static void ClearSwappedMethods()
         {
-            foreach (MonoMod.RuntimeDetour.Detour g in ChaosEdition.ActiveDetours)
+            foreach (MonoMod.RuntimeDetour.Detour g in ChaosEdition.ActiveDetours)//for random method swapping
                 g.Dispose();
-            ChaosEdition.ActiveDetours.Clear();
+            ChaosEdition.ActiveDetours.Clear();//for random method swapping
             Main.NewText("Cleared");
         }
+        */
     }
 
     public class ChaosEditionSystem : ModSystem
@@ -301,12 +307,23 @@ namespace ChaosEdition
             Utils.DrawBorderString(spriteBatch, "Time since last: " + LastCode.ToShortTimeString(), new Vector2(5, 15), Color.White * 0.75f);
             Utils.DrawBorderString(spriteBatch, "Time till next: " + Math.Max(0, (int)TimeUntilNext.TotalSeconds), new Vector2(5, 30), Color.White * 0.75f);
 
-            int count = 0;
-            foreach (KeyValuePair<Type, bool> pair in ActiveEffects)
+            if (DrawActiveCodes)
             {
-                Color color = pair.Value ? new Color(100, 255, 100) : (count % 2 == 0 ? Color.Tomato : Color.CornflowerBlue);
-                Utils.DrawBorderString(spriteBatch, pair.Key.Name + " : " + pair.Value, new Vector2(5, 45 + (15 * count)), color);
-                count++;
+                int count = 0;
+                foreach (KeyValuePair<Type, bool> pair in ActiveEffects)
+                {
+                    if (DrawFullCodeList)
+                    {
+                        Color color = pair.Value ? new Color(100, 255, 100) : (count % 2 == 0 ? Color.Tomato : Color.CornflowerBlue);
+                        Utils.DrawBorderString(spriteBatch, pair.Key.Name + " : " + pair.Value, new Vector2(5, 45 + (15 * count)), color);
+                        count++;
+                    }
+                    else if (pair.Value)
+                    {
+                        Utils.DrawBorderString(spriteBatch, pair.Key.Name, new Vector2(5, 45 + (15 * count)), new Color(100, 255, 100));
+                        count++;
+                    }
+                }
             }
         }
     }

@@ -3,14 +3,17 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace ChaosEdition
 {
+    #region item effects
     public class DropHeldItemRandom : PlayerCode
     {
         public override int MaxLengthSeconds => 120;
@@ -71,6 +74,8 @@ namespace ChaosEdition
         public override int NextExtraDelaySeconds => 5;
 
         private int counter = 100;
+
+        //causes the player to drop their coins at random intervals overs the length of the effect
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (counter <= 0)
@@ -117,10 +122,62 @@ namespace ChaosEdition
             if (!ran)
             {
                 int index = Main.rand.Next(player.inventory.Length);
-                player.inventory[index].bait = Main.rand.Next(1, 666);
+                player.inventory[index].bait = Main.rand.Next(1, 1000);
                 ran = true;
                 //Main.NewText(player.inventory[index].Name + " " + player.inventory[index].bait);
             }
+        }
+    }
+
+    public class RandomItemFiresale : PlayerCode
+    {
+        public override int MaxLengthSeconds => 10;
+        public override int MinLengthSeconds => 10;
+
+        public override int NextExtraDelaySeconds => -7;
+        bool ran = false;
+        Item selectedItem;
+        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+        {
+            if (!ran)
+            {
+                int index = Main.rand.Next(player.inventory.Length);
+                for (int i = 0; i < 10; i++)
+                {
+                    if(player.inventory[index] == null || player.inventory[index].IsAir || player.inventory[index].IsACoin)
+                    {
+                        index = Main.rand.Next(player.inventory.Length);
+                    }
+                    else
+                        break;
+                }
+                if(player.inventory[index] == null || player.inventory[index].IsAir || player.inventory[index].IsACoin)
+                {
+                    this.Remove();
+                    return;
+                }
+
+                selectedItem = player.inventory[index];
+
+                int originalPrice = selectedItem.GetStoreValue();
+
+                selectedItem.shopCustomPrice =
+                    originalPrice > Item.buyPrice(0, 1, 0, 0) ? originalPrice * Main.rand.Next(3, 10) :
+                        originalPrice > Item.buyPrice(0, 0, 1, 0) ? originalPrice * Main.rand.Next(30, 50) :
+                            originalPrice == 0 ? Item.buyPrice(0, 0, 2, 0) : Item.buyPrice(0, 0, 5, 0);
+
+                Main.NewText("Firesale! Your '" + selectedItem.Name + "' is worth much more for a limited time!   Ends in 10 seconds.", new Color(255, 100, 25));
+                //Main.NewText("Ends in 10 seconds!", Color.OrangeRed);
+                ran = true;
+            }
+        }
+
+        public override void OnRemove()
+        {
+            if (selectedItem == null || selectedItem.IsAir)
+                return;
+            else
+                selectedItem.shopCustomPrice = null;
         }
     }
 
@@ -140,6 +197,58 @@ namespace ChaosEdition
             }
         }
     }
+
+    public class OPDirtRod : PlayerCode
+    {
+        public override int MaxLengthSeconds => 45;
+        public override int MinLengthSeconds => 15;
+
+        public override int NextExtraDelaySeconds => 40;
+        bool ran = false;
+        Player playerInstance;//unsure of multiplater compat
+
+        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+        {
+            if (!ran)
+            {
+                playerInstance = player;
+                int index = Item.NewItem(player.GetSource_GiftOrReward(), player.position, ItemID.DirtRod);
+                Main.item[index].damage = Main.hardMode ? Main.rand.Next(400, 1600) : Main.rand.Next(180, 350);
+
+                ran = true;
+            }
+        }
+
+        public override void OnRemove()
+        {
+            if (playerInstance != null && playerInstance.active)
+                foreach (Item item in playerInstance.inventory)
+                {
+                    if (item.type == ItemID.DirtRod)
+                        item.TurnToAir();
+                }
+        }
+    }
+
+    public class ChristmasGift : PlayerCode
+    {
+        public override int MaxLengthSeconds => 1;
+        public override int MinLengthSeconds => 1;
+
+        public override int NextExtraDelaySeconds => 20;
+        bool ran = false;
+        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+        {
+            if (!ran)
+            {
+                Main.NewText("Ho Ho Ho!", new Color(50, 255, 80));
+                for (int i = -10; i < 10; i++)
+                    Item.NewItem(player.GetSource_GiftOrReward(), player.position + new Vector2(i * 50, -600), Main.rand.Next(50) == 0 ? ItemID.Coal : ItemID.Present);
+                ran = true;
+            }
+        }
+    }
+    #endregion
 
     public class ExplosiveDiarrhea : PlayerCode
     {
@@ -220,7 +329,7 @@ namespace ChaosEdition
             {
                 for (int j = -radius; j < radius; j++)
                 {
-                    if(Main.rand.Next(8) == 0)
+                    if(Main.rand.NextBool(8))
                         WorldGen.SquareTileFrame((int)player.Bottom.X / 16 + i, (int)player.Bottom.Y / 16 + j, true);
                 }
             }
@@ -242,19 +351,11 @@ namespace ChaosEdition
                 if (npc.active && !npc.immortal && !npc.dontCountMe && !npc.dontTakeDamage && (!npc.townNPC || Main.rand.Next(50) == 0))
                 {
                     npc.position = player.Center + (Vector2.UnitY.RotatedByRandom(Math.PI * 2) * Main.rand.Next(150, 1200));
-                    Main.NewText("Moved npc: " + npc.TypeName);
+                    //Main.NewText("Moved npc: " + npc.TypeName);
                     count++;
                 }
             }
         }
-    }
-
-    public class GravityFlip : PlayerCode
-    {
-        public override int MaxLengthSeconds => 60;
-        public override int MinLengthSeconds => 10;
-
-        public override int NextExtraDelaySeconds => 20;
     }
 
     public class RunFast : PlayerCode
@@ -294,38 +395,6 @@ namespace ChaosEdition
         }
     }
 
-    public class InvertScreen : PlayerCode
-    {
-        public override int MaxLengthSeconds => 20;
-        public override int MinLengthSeconds => 15;
-
-        public override int NextExtraDelaySeconds => -10;
-    }
-
-    public class ScreenGameboy : PlayerCode
-    {
-        public override int MaxLengthSeconds => 40;
-        public override int MinLengthSeconds => 15;
-
-        public override int NextExtraDelaySeconds => -12;
-    }
-
-    public class ScreenRed : PlayerCode
-    {
-        public override int MaxLengthSeconds => 60;
-        public override int MinLengthSeconds => 15;
-
-        public override int NextExtraDelaySeconds => -15;
-    }
-
-    public class ScreenMoonlord : PlayerCode
-    {
-        public override int MaxLengthSeconds => 30;
-        public override int MinLengthSeconds => 15;
-
-        public override int NextExtraDelaySeconds => -5;
-    }
-
     public class RandomTeleport : PlayerCode
     {
         public override int MaxLengthSeconds => 1;
@@ -346,57 +415,6 @@ namespace ChaosEdition
                 if (!bossAlive)
                     player.TeleportationPotion();
 
-                ran = true;
-            }
-        }
-    }
-
-    public class OPDirtRod : PlayerCode
-    {
-        public override int MaxLengthSeconds => 45;
-        public override int MinLengthSeconds => 15;
-
-        public override int NextExtraDelaySeconds => 40;
-        bool ran = false;
-        Player playerInstance;//unsure of multiplater compat
-
-        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
-        {
-            if (!ran)
-            {
-                playerInstance = player;
-                int index = Item.NewItem(player.GetSource_GiftOrReward(), player.position, ItemID.DirtRod);
-                Main.item[index].damage = Main.hardMode ? Main.rand.Next(400, 1600) : Main.rand.Next(180, 350);
-
-                ran = true;
-            }
-        }
-
-        public override void OnRemove()
-        {
-            if(playerInstance != null && playerInstance.active)
-                foreach(Item item in playerInstance.inventory)
-                {
-                    if (item.type == ItemID.DirtRod)
-                        item.TurnToAir();
-                }
-        }
-    }
-
-    public class ChristmasGift : PlayerCode
-    {
-        public override int MaxLengthSeconds => 1;
-        public override int MinLengthSeconds => 1;
-
-        public override int NextExtraDelaySeconds => 20;
-        bool ran = false;
-        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
-        {
-            if (!ran)
-            {
-                Main.NewText("Ho Ho Ho!", new Color(50, 255, 80));
-                for(int i = -10; i < 10; i++)
-                    Item.NewItem(player.GetSource_GiftOrReward(), player.position + new Vector2(i * 50, -600), Main.rand.Next(50) == 0 ? ItemID.Coal : ItemID.Present);
                 ran = true;
             }
         }
@@ -504,6 +522,132 @@ namespace ChaosEdition
                     WorldGen.SquareTileFrame(i, j);
                 }
             }
+        }
+    }
+
+    #region player drawing
+    public class RandomPlayerLayerColors : PlayerCode
+    {
+        public override int MaxLengthSeconds => 360;
+        public override int MinLengthSeconds => 60;
+
+        public override int NextExtraDelaySeconds => -16;
+
+        bool ran = false;
+        bool Transparency = Main.rand.NextBool();
+
+        Color colorHair;
+        Color colorEyeWhites;
+        Color colorEyes;
+        Color colorHead;
+        Color colorBodySkin;
+        Color colorLegs;
+        Color colorShirt;
+        Color colorUnderShirt;
+        Color colorPants;
+        Color colorShoes;
+        Color colorArmorHead;
+        Color colorArmorBody;
+        Color colorMount;
+        Color colorArmorLegs;
+        Color colorElectricity;
+        Color headGlowColor;
+        Color bodyGlowColor;
+        Color armGlowColor;
+        Color legsGlowColor;
+        Color ArkhalisColor;
+        Color selectionGlowColor;
+        Color itemColor;
+        Color floatingTubeColor;
+
+        Color RandomColor => 
+            new Color(Main.rand.Next(256), Main.rand.Next(256), Main.rand.Next(256), Transparency ? Main.rand.Next(256) : 255);
+
+        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+        {
+            if (!ran)
+            {
+                colorHair = RandomColor;
+                colorEyeWhites = RandomColor;
+                colorEyes = RandomColor;
+                colorHead = RandomColor;
+                colorBodySkin = RandomColor;
+                colorLegs = RandomColor;
+                colorShirt = RandomColor;
+                colorUnderShirt = RandomColor;
+                colorPants = RandomColor;
+                colorShoes = RandomColor;
+                colorArmorHead = RandomColor;
+                colorArmorBody = RandomColor;
+                colorMount = RandomColor;
+                colorArmorLegs = RandomColor;
+                colorElectricity = RandomColor;
+                headGlowColor = RandomColor;
+                bodyGlowColor = RandomColor;
+                armGlowColor = RandomColor;
+                legsGlowColor = RandomColor;
+                ArkhalisColor = RandomColor;
+                selectionGlowColor = RandomColor;
+                itemColor = RandomColor;
+                floatingTubeColor = RandomColor;
+
+                ran = true;
+            }
+        }
+        public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo)
+        {
+            drawInfo.colorHair = colorHair;
+            drawInfo.colorEyeWhites = colorEyeWhites;
+            drawInfo.colorEyes = colorEyes;
+            drawInfo.colorHead = colorHead;
+            drawInfo.colorBodySkin = colorBodySkin;
+            drawInfo.colorLegs = colorLegs;
+            drawInfo.colorShirt = colorShirt;
+            drawInfo.colorUnderShirt = colorUnderShirt;
+            drawInfo.colorPants = colorPants;
+            drawInfo.colorShoes = colorShoes;
+            drawInfo.colorArmorHead = colorArmorHead;
+            drawInfo.colorArmorBody = colorArmorBody;
+            drawInfo.colorMount = colorMount;
+            drawInfo.colorArmorLegs = colorArmorLegs;
+            drawInfo.colorElectricity = colorElectricity;
+            drawInfo.headGlowColor = headGlowColor;
+            drawInfo.bodyGlowColor = bodyGlowColor;
+            drawInfo.armGlowColor = armGlowColor;
+            drawInfo.legsGlowColor = legsGlowColor;
+            drawInfo.ArkhalisColor = ArkhalisColor;
+            drawInfo.selectionGlowColor = selectionGlowColor;
+            drawInfo.itemColor = itemColor;
+            drawInfo.floatingTubeColor = floatingTubeColor;
+        }
+    }
+
+    public class PlayerFloatyRotate : PlayerCode
+    {
+        public override int MaxLengthSeconds => 160;
+        public override int MinLengthSeconds => 30;
+
+        public override int NextExtraDelaySeconds => -16;
+
+        public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo)
+        {
+            drawInfo.rotation = (Main.GameUpdateCount * 0.1f);
+            drawInfo.rotationOrigin = (drawInfo.drawPlayer.Size / 2) + new Vector2((float)Math.Sin((Main.GameUpdateCount * 0.033f)) * 10, (float)Math.Sin(Main.GameUpdateCount * 0.0225f) * 10);
+        }
+    }
+    #endregion
+
+    public class ExtendedWingTime : PlayerCode
+    {
+        public override int MaxLengthSeconds => 180;
+        public override int MinLengthSeconds => 60;
+
+        public override int NextExtraDelaySeconds => 0;
+
+        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+        {
+            player.wingTimeMax = 2000;
+            player.wingTime = 2000;
         }
     }
 }

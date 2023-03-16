@@ -40,7 +40,7 @@ namespace ChaosEdition.Items
 				else
 				{
 					//new MethodSwapCode();
-					new LeadToGold();
+					new RandomItemFiresale();
 				}
 			}
 			return true;
