@@ -31,9 +31,6 @@ namespace ChaosEdition
         public static List<(Code code, List<Code> list)> RemovalList = new List<(Code code, List<Code> list)>();
 
         public static DateTime LastCode = DateTime.Now;
-        public static TimeSpan NewCodeDelay => new TimeSpan(0, 0, 15);
-        public static TimeSpan RetryCodeDelay => new TimeSpan(0, 0, 10);
-        public static int MaxActiveCodes = 10;
         public static int ActiveCodeCount => MenuCodes.Count + NpcCodes.Count + PlayerCodes.Count + TileCodes.Count + ItemCodes.Count + ProjectileCodes.Count + MiscCodes.Count;
 
         public static TimeSpan CurrentExtraDelay = new TimeSpan();
@@ -46,9 +43,16 @@ namespace ChaosEdition
         public static bool Loaded = false;
 
 
-        public const bool DrawActiveCodes = true;
+
+        public static TimeSpan NewCodeDelay => new TimeSpan(0, 0, 15);
+        public static TimeSpan RetryCodeDelay => new TimeSpan(0, 0, 10);
+        public static int MaxActiveCodes = 10;
+
+
+
+        public const bool DrawActiveCodes = false;
         public const bool DrawFullCodeList = false;
-        public static bool AutoSelectingCodes => false;//disble for testing
+        public static bool AutoSelectingCodes => true;//disble for testing
 
 
         //public static List<Detour> ActiveDetours = new List<Detour>();//for random method swapping
@@ -307,7 +311,7 @@ namespace ChaosEdition
             Utils.DrawBorderString(spriteBatch, "Time since last: " + LastCode.ToShortTimeString(), new Vector2(5, 15), Color.White * 0.75f);
             Utils.DrawBorderString(spriteBatch, "Time till next: " + Math.Max(0, (int)TimeUntilNext.TotalSeconds), new Vector2(5, 30), Color.White * 0.75f);
 
-            if (DrawActiveCodes)
+            if (DrawActiveCodes || Main.LocalPlayer.HeldItem.type == ItemID.Gel)
             {
                 int count = 0;
                 foreach (KeyValuePair<Type, bool> pair in ActiveEffects)
