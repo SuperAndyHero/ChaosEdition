@@ -47,7 +47,7 @@ namespace ChaosEdition
         {
             if (!ran)
             {
-                int index = Main.rand.Next(Main.tileBouncy.Length);
+                int index = Main.rand.Next(Main.tileCut.Length);
                 Main.tileCut[index] = !Main.tileCut[index];
                 ran = true;
             }

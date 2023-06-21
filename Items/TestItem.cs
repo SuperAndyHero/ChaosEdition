@@ -1,3 +1,4 @@
+using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -9,7 +10,7 @@ namespace ChaosEdition.Items
 		public override void SetStaticDefaults() 
 		{
 			// DisplayName.SetDefault("TestItem"); // By default, capitalization in classnames will add spaces to the display name. You can customize the display name here by uncommenting this line.
-			Tooltip.SetDefault("This is a basic modded sword.");
+			//Tooltip.SetDefault("This is a basic modded sword.");
 		}
 
 		public override void SetDefaults() 
@@ -40,8 +41,13 @@ namespace ChaosEdition.Items
 				else
 				{
 					//new MethodSwapCode();
-					new RandomItemFiresale();
-				}
+					//new RandomItemFiresale();
+					//new MakeOneItemHuge();
+					//new ChristmasGift();
+
+                    ChaosEdition.CurrentExtraDelay = new TimeSpan(0, 0, 0);
+                    ChaosEdition.TimeLastCodeSelected = DateTime.Now.Subtract(new TimeSpan(0, 0, ChaosEdition.DefaultDelayBetweenCodes));
+                }
 			}
 			return true;
         }

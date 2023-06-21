@@ -17,27 +17,27 @@ namespace ChaosEdition
     {
         public override void DrawEffects(PlayerDrawSet drawInfo, ref float r, ref float g, ref float b, ref float a, ref bool fullBright)
         {
-            foreach (PlayerCode code in ChaosEdition.PlayerCodes)
+            foreach (PlayerCode code in ChaosEdition.ActivePlayerCodes)
                 code.DrawEffects(drawInfo, ref r, ref g, ref b, ref a, ref fullBright);
         }
         public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo)
         {
-            foreach (PlayerCode code in ChaosEdition.PlayerCodes)
+            foreach (PlayerCode code in ChaosEdition.ActivePlayerCodes)
                 code.ModifyDrawInfo(ref drawInfo);
         }
         public override void ModifyDrawLayerOrdering(IDictionary<PlayerDrawLayer, PlayerDrawLayer.Position> positions)
         {
-            foreach (PlayerCode code in ChaosEdition.PlayerCodes)
+            foreach (PlayerCode code in ChaosEdition.ActivePlayerCodes)
                 code.ModifyDrawLayerOrdering(positions);
         }
         public override void PreUpdate()
         {
-            foreach (PlayerCode code in ChaosEdition.PlayerCodes)
+            foreach (PlayerCode code in ChaosEdition.ActivePlayerCodes)
                 code.PreUpdatePlayer(Player, this);
         }
         public override void PostUpdate()
         {
-            foreach (PlayerCode code in ChaosEdition.PlayerCodes)
+            foreach (PlayerCode code in ChaosEdition.ActivePlayerCodes)
                 code.PostUpdatePlayer(Player, this);
         }
 
@@ -56,14 +56,14 @@ namespace ChaosEdition
     {
         public override void SpecialVisuals(Player player, bool isActive)
         {
-            if (isActive)
-            {
+            //if (isActive)//this is never true for some reason
+            //{
                 player.ManageSpecialBiomeVisuals("testInvert", ChaosEdition.ActiveEffects[typeof(InvertScreen)], player.Center);
                 player.ManageSpecialBiomeVisuals("Test2", ChaosEdition.ActiveEffects[typeof(ScreenGameboy)], player.Center);
                 player.ManageSpecialBiomeVisuals("Sandstorm", ChaosEdition.ActiveEffects[typeof(ScreenRed)], player.Center);
                 player.ManageSpecialBiomeVisuals("BloodMoon", ChaosEdition.ActiveEffects[typeof(ScreenRed)], player.Center);
                 player.ManageSpecialBiomeVisuals("ChaosEdition:Moonlord", ChaosEdition.ActiveEffects[typeof(ScreenMoonlord)], player.Center);
-            }
+            //}
         }
     }
 }

@@ -19,34 +19,34 @@ namespace ChaosEdition
     {
         public override void RandomUpdate(int i, int j, int type)
         {
-            foreach (TileCode code in ChaosEdition.TileCodes)
+            foreach (TileCode code in ChaosEdition.ActiveTileCodes)
                 code.RandomUpdate(i, j, type);
         }
         public override void NearbyEffects(int i, int j, int type, bool closer)
         {
-            foreach (TileCode code in ChaosEdition.TileCodes)
+            foreach (TileCode code in ChaosEdition.ActiveTileCodes)
                 code.NearbyEffects(i, j, type, closer);
         }
         public override bool PreDraw(int i, int j, int type, SpriteBatch spriteBatch)
         {
             bool DrawTile = base.PreDraw(i, j, type, spriteBatch);
-            foreach (TileCode code in ChaosEdition.TileCodes)
+            foreach (TileCode code in ChaosEdition.ActiveTileCodes)
                 DrawTile = DrawTile && code.PreDraw(i, j, type, spriteBatch);
             return DrawTile;
         }
         public override void DrawEffects(int i, int j, int type, SpriteBatch spriteBatch, ref TileDrawInfo drawData)
         {
-            foreach (TileCode code in ChaosEdition.TileCodes)
+            foreach (TileCode code in ChaosEdition.ActiveTileCodes)
                 code.DrawEffects(i, j, type, spriteBatch, ref drawData);
         }
         public override void PostDraw(int i, int j, int type, SpriteBatch spriteBatch)
         {
-            foreach (TileCode code in ChaosEdition.TileCodes)
+            foreach (TileCode code in ChaosEdition.ActiveTileCodes)
                 code.PostDraw(i, j, type, spriteBatch);
         }
         public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
         {
-            foreach (TileCode code in ChaosEdition.TileCodes)
+            foreach (TileCode code in ChaosEdition.ActiveTileCodes)
                 code.KillTile(i, j, type, ref fail, ref effectOnly, ref noItem);
         }
     }
@@ -55,7 +55,7 @@ namespace ChaosEdition
     {
         public override void KillWall(int i, int j, int type, ref bool fail)
         {
-            foreach (TileCode code in ChaosEdition.TileCodes)
+            foreach (TileCode code in ChaosEdition.ActiveTileCodes)
                 code.KillWall(i, j, type, ref fail);
         }
     }

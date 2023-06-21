@@ -17,7 +17,7 @@ namespace ChaosEdition
 
         public override int NextExtraDelaySeconds => -20;
 
-        public override void Kill(Projectile projectile, int timeLeft)
+        public override void OnKill(Projectile projectile, int timeLeft)
         {
             int dustID = 0;
             switch(Main.rand.Next(0, 5)){

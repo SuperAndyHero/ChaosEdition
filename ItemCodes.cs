@@ -79,7 +79,9 @@ namespace ChaosEdition
 
     public class ItemScaleChange : ItemCode
     {
-        public override int MaxLengthSeconds => 90;
+        public override int MaxLengthSeconds => 70;
+
+        public override int MinLengthSeconds => 20;
 
         public override int NextExtraDelaySeconds => -5;
 

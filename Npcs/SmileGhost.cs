@@ -11,7 +11,7 @@ namespace ChaosEdition.Npcs
 	{
         public override void SetStaticDefaults()
         {
-            DisplayName.SetDefault("Smile Ghost");
+            //DisplayName.SetDefault("Smile Ghost");
         }
 
         public override void SetDefaults()

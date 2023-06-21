@@ -16,10 +16,10 @@ namespace ChaosEdition
     #region item effects
     public class DropHeldItemRandom : PlayerCode
     {
-        public override int MaxLengthSeconds => 120;
-        public override int MinLengthSeconds => 55;
+        public override int MaxLengthSeconds => 100;
+        public override int MinLengthSeconds => 40;
 
-        public override int NextExtraDelaySeconds => 10;
+        public override int NextExtraDelaySeconds => 7;
 
         private int counter = 100;
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
@@ -29,7 +29,7 @@ namespace ChaosEdition
                 if (player.itemTime == 0)
                 {
                     player.inventory[player.selectedItem].noGrabDelay = Main.rand.Next(100, 400);
-                    player.QuickSpawnClonedItem(player.GetSource_DropAsItem(), player.inventory[player.selectedItem], player.inventory[player.selectedItem].stack);
+                    player.QuickSpawnItem(player.GetSource_DropAsItem(), player.inventory[player.selectedItem], player.inventory[player.selectedItem].stack);
                     player.inventory[player.selectedItem].TurnToAir();
                 }
                 counter = Main.rand.Next(550, 2000);
@@ -42,7 +42,7 @@ namespace ChaosEdition
 
     public class AlwaysDropOneSlot : PlayerCode
     {
-        public override int MaxLengthSeconds => 120;
+        public override int MaxLengthSeconds => 100;
         public override int MinLengthSeconds => 30;
 
         public override int NextExtraDelaySeconds => 5;
@@ -55,7 +55,7 @@ namespace ChaosEdition
                 if (player.itemTime == 0)
                 {
                     player.inventory[slot].noGrabDelay = Main.rand.Next(100, 400);
-                    player.QuickSpawnClonedItem(player.GetSource_DropAsItem(), player.inventory[slot], player.inventory[slot].stack);
+                    player.QuickSpawnItem(player.GetSource_DropAsItem(), player.inventory[slot], player.inventory[slot].stack);
                     player.inventory[slot].TurnToAir();
                 }
                 counter = Main.rand.Next(550, 2000);
@@ -68,10 +68,10 @@ namespace ChaosEdition
 
     public class DropCoinsRandom : PlayerCode
     {
-        public override int MaxLengthSeconds => 180;
-        public override int MinLengthSeconds => 75;
+        public override int MaxLengthSeconds => 120;
+        public override int MinLengthSeconds => 40;
 
-        public override int NextExtraDelaySeconds => 5;
+        public override int NextExtraDelaySeconds => 7;
 
         private int counter = 100;
 
@@ -126,6 +126,36 @@ namespace ChaosEdition
                 ran = true;
                 //Main.NewText(player.inventory[index].Name + " " + player.inventory[index].bait);
             }
+        }
+    }
+
+    public class MakeOneItemHuge : PlayerCode
+    {
+        public override int MaxLengthSeconds => 120;
+        public override int MinLengthSeconds => 30;
+
+        public override int NextExtraDelaySeconds => -3;
+        bool ran = false;
+        Item iteminstance;
+        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+        {
+            if (!ran)
+            {
+                int index = Main.rand.Next(player.inventory.Length);
+                iteminstance = player.inventory[index];
+
+                if(iteminstance is null || iteminstance.IsAir)
+                    return;
+
+                iteminstance.scale *= 10;
+                ran = true;
+                Main.NewText(player.inventory[index].Name + " " + player.inventory[index].bait);
+            }
+        }
+
+        public override void OnRemove()
+        {
+            iteminstance.scale /= 10;//this can be bypassed by dropping items
         }
     }
 
@@ -241,9 +271,18 @@ namespace ChaosEdition
         {
             if (!ran)
             {
+                bool evilsanta = Main.rand.NextBool(12);
+                bool halloween = Main.rand.NextBool(24);
                 Main.NewText("Ho Ho Ho!", new Color(50, 255, 80));
                 for (int i = -10; i < 10; i++)
-                    Item.NewItem(player.GetSource_GiftOrReward(), player.position + new Vector2(i * 50, -600), Main.rand.Next(50) == 0 ? ItemID.Coal : ItemID.Present);
+                {
+                    if(evilsanta)
+                        Projectile.NewProjectile(player.GetSource_GiftOrReward(), player.position + new Vector2(i * 50, -600), new Vector2(Main.rand.NextFloat(-0.1f, 0.1f), 0), ProjectileID.Grenade, 100, 1, player.whoAmI);
+                    else if (halloween)
+                        Item.NewItem(player.GetSource_GiftOrReward(), player.position + new Vector2(i * 50, -600), ItemID.GoodieBag);
+                    else
+                        Item.NewItem(player.GetSource_GiftOrReward(), player.position + new Vector2(i * 50, -600), Main.rand.Next(50) == 0 ? ItemID.Coal : ItemID.Present);
+                }
                 ran = true;
             }
         }
@@ -293,7 +332,7 @@ namespace ChaosEdition
     {
         public override int MaxLengthSeconds => 10;
 
-        public override int NextExtraDelaySeconds => -15;
+        public override int NextExtraDelaySeconds => -12;
         const int radius = 10;
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
@@ -413,7 +452,18 @@ namespace ChaosEdition
                         bossAlive = true;
 
                 if (!bossAlive)
+                {
                     player.TeleportationPotion();
+
+                    if (Main.rand.NextBool(30))
+                    {
+                        int yval = (int)(player.position.Y / 16);
+                        if (yval > Main.rockLayer && yval < Main.maxTilesY - 200)
+                        {
+                            Main.NewText("Welcome to the underground");
+                        }
+                    }
+                }
 
                 ran = true;
             }
@@ -422,33 +472,42 @@ namespace ChaosEdition
 
     public class SmileGhost : PlayerCode
     {
-        public override int MaxLengthSeconds => 1;
-        public override int MinLengthSeconds => 1;
+        public override int MaxLengthSeconds => 150;
+        public override int MinLengthSeconds => 25;
 
         public override int NextExtraDelaySeconds => 40;
         bool ran = false;
+        int npcIndex = -1;
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (!ran)
             {
                 Vector2 pos = player.position + (Vector2.UnitY * (Main.screenWidth * 0.75f)).RotatedByRandom(Math.Tau);
-                NPC.NewNPC(player.GetSource_GiftOrReward(), (int)pos.X, (int)pos.Y, ModContent.NPCType<Npcs.SmileGhost>());
+                npcIndex = NPC.NewNPC(player.GetSource_GiftOrReward(), (int)pos.X, (int)pos.Y, ModContent.NPCType<Npcs.SmileGhost>());
                 ran = true;
+            }
+        }
+
+        public override void OnRemove()
+        {
+            if (Main.npc[npcIndex].active && Main.npc[npcIndex].type == ModContent.NPCType<Npcs.SmileGhost>())
+            {
+                Main.npc[npcIndex].active = false;
             }
         }
     }
 
     public class BoulderDrop : PlayerCode
     {
-        public override int MaxLengthSeconds => 120;
-        public override int MinLengthSeconds => 30;
+        public override int MaxLengthSeconds => 80;
+        public override int MinLengthSeconds => 20;
 
         public override int NextExtraDelaySeconds => 5;
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (Main.rand.NextBool(1000))
             {
-                Main.NewText("dropped");
+                Main.NewText("Look out!", Color.LightYellow);
                 Projectile.NewProjectile(player.GetSource_GiftOrReward(), player.Center + new Vector2(Main.rand.Next(-1, 2), -Main.screenHeight / 1.9f), new Vector2(0, 2f), ProjectileID.Boulder, 200, 1);
             }
         }
@@ -506,7 +565,7 @@ namespace ChaosEdition
         public override int MaxLengthSeconds => 200;
         public override int MinLengthSeconds => 45;
 
-        public override int NextExtraDelaySeconds => -15;
+        public override int NextExtraDelaySeconds => -12;
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (Main.rand.NextBool(7))

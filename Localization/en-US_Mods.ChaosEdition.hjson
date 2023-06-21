@@ -1,0 +1,58 @@
+Items: {
+	TestItem: {
+		DisplayName: Test Item
+		Tooltip: ""
+	}
+}
+
+NPCs.SmileGhost.DisplayName: Smile Ghost
+
+Configs: {
+	GameplayConfig: {
+		DisplayName: Gameplay Config
+
+		EnableChaosEdition: {
+			Label: Enable Chaos Edition
+			Tooltip: ""
+		}
+
+		MaxActiveEffects: {
+			Label: Max Active Effects
+			Tooltip: ""
+		}
+
+		DelayBetweenEffects: {
+			Label: Delay Between Effects
+			Tooltip: ""
+		}
+	}
+
+	InterfaceConfig: {
+		DisplayName: Interface Config
+
+		ShowActiveEffects: {
+			Label: Show Active Effects
+			Tooltip: ""
+		}
+
+		DebugShowAllEffects: {
+			Label: Debug Show All Effects
+			Tooltip: ""
+		}
+
+		ShowCountdownTimer: {
+			Label: Show Countdown Timer
+			Tooltip: ""
+		}
+
+		ShowActiveEffectCount: {
+			Label: Show Active Effect Count
+			Tooltip: ""
+		}
+
+		ShowActiveEffectList: {
+			Label: Show Active Effect List
+			Tooltip: ""
+		}
+	}
+}

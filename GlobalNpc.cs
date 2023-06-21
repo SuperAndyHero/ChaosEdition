@@ -19,32 +19,32 @@ namespace ChaosEdition
         public override bool PreAI(NPC npc)
         {
             bool RunAI = base.PreAI(npc);
-            foreach (NpcCode code in ChaosEdition.NpcCodes)
+            foreach (NpcCode code in ChaosEdition.ActiveNpcCodes)
                 RunAI = RunAI && code.PreAI(npc, npc.ModNPC);
             return RunAI;
         }
 
         public override void AI(NPC npc)
         {
-            foreach (NpcCode code in ChaosEdition.NpcCodes)
+            foreach (NpcCode code in ChaosEdition.ActiveNpcCodes)
                 code.AI(npc, npc.ModNPC);
         }
 
         public override void DrawEffects(NPC npc, ref Color drawColor)
         {
-            foreach (NpcCode code in ChaosEdition.NpcCodes)
+            foreach (NpcCode code in ChaosEdition.ActiveNpcCodes)
                 code.DrawEffects(npc, ref drawColor, npc.ModNPC);
         }
         public override bool PreDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
         {
             bool DrawNpc = base.PreDraw(npc, spriteBatch, screenPos, drawColor);
-            foreach (NpcCode code in ChaosEdition.NpcCodes)
+            foreach (NpcCode code in ChaosEdition.ActiveNpcCodes)
                 DrawNpc = DrawNpc && code.PreDraw(npc, spriteBatch, drawColor, npc.ModNPC);
             return DrawNpc;
         }
         public override void PostDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
         {
-            foreach (NpcCode code in ChaosEdition.NpcCodes)
+            foreach (NpcCode code in ChaosEdition.ActiveNpcCodes)
                 code.PostDraw(npc, spriteBatch, drawColor, npc.ModNPC);
         }
     }

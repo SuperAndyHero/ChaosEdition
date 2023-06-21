@@ -1,0 +1,23 @@
+more codes overall
+santa too common (twice in first few min)
+no color inverts in first few min
+there needs to be a chance system for fine tuning
+tile breaks too common (makes npc housing inpossible, avoid nearby npcs?)
+struck by falling star effect
+boss gated effects
+add effect where a random player from the saved players joins the game
+redo system so that extra delay isnt relied on (and/or add a (per code optional) recent codes / cooldown list to prevent dupes of ones that need a cooldown)
+also maybe split CodeTypes array into per code type arrays, and add code type balacing (this may have been the intension since there are seperate active lists)
+possibly a bool for if a code should be instant, if needed. As of now this can reply on time values
+//TODO: request packet from client, send list of all active codes to client (figure out syncing custom data with codes)
+//TODO find better hook for adding/removing codes, PostUpdateInput does not run on server
+
+
+
+DONE remove pick tile
+DONE chance if wormhole into caves, welcome to the underground message
+DONE idea: make one item very big
+DONE make small items length shorter
+DONE debug text on boulder (feedback says some warning text is good)
+DONE idea: make santa drop bombs
+DONE codes too fast

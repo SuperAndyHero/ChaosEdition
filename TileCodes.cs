@@ -41,7 +41,7 @@ namespace ChaosEdition
 
         public override int MaxLengthSeconds => 95;
 
-        public override int NextExtraDelaySeconds => -15;
+        public override int NextExtraDelaySeconds => -12;
         public override void DrawEffects(int i, int j, int type, SpriteBatch spriteBatch, ref TileDrawInfo drawData)
         {
             drawData.colorTint = new Color(
@@ -71,12 +71,13 @@ namespace ChaosEdition
 
         public override int MaxLengthSeconds => 95;
 
-        public override int NextExtraDelaySeconds => -15;
+        public override int NextExtraDelaySeconds => -12;
         public override void NearbyEffects(int i, int j, int type, bool closer)
         {
             if (Main.rand.NextBool(100000))
             {
-                Main.LocalPlayer.PickTile(i, j, Main.rand.Next(10, 101));
+                //Main.LocalPlayer.PickTile(i, j, 0);annoying and breaks houses, maybe readd if a destructive mode is added
+                WorldGen.KillTile(i, j, true);
             }
         }
     }
