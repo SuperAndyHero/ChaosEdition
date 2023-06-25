@@ -294,6 +294,7 @@ namespace ChaosEdition
         public override int MaxLengthSeconds => 5;
         public override int MinLengthSeconds => 4;
 
+        [NetSync]
         public int projectileType = ProjectileID.Grenade;
         public ExplosiveDiarrhea() : base()
         {

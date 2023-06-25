@@ -47,14 +47,14 @@ namespace ChaosEdition
                     ChaosEdition.CurrentExtraDelay += new TimeSpan(0, 0, (int)(NextExtraDelaySeconds * TimeDelayScale));
                 }
 
-                if(Main.netMode == NetmodeID.Server)//send these values to MP clients
+                if(Main.netMode == NetmodeID.Server)//sync new code and current timer to mp clients
                 {
                     ModPacket modpacket = GetInstance<ChaosEdition>().GetPacket();
-                    modpacket.Write(256);//needs to be here of server(?)
+                    //modpacket.Write(256);//needs to be here for server(test without)
 
                     modpacket.WriteTime(0, true);
-
                     modpacket.WriteNewCode(type, TimeActiveSpan);
+                    modpacket.Send();
                 }
 
 
@@ -84,22 +84,19 @@ namespace ChaosEdition
             return false;
         }
 
-        //use SyncValue here
-        public virtual void SyncMultiplayerValues() { }
-
-        internal void SyncValue(ref dynamic value)
-        {
-            if (Main.netMode == NetmodeID.Server)
-            {
-                ChaosEdition.SyncValueQueue.Enqueue(value);
-            }
-            else if (Main.netMode == NetmodeID.MultiplayerClient)
-            {
-                value = ChaosEdition.SyncValueQueue.Dequeue();
-            }
-            else
-                throw new Exception("Multiplayer code running in singleplayer, report to mod dev.");
-        }
+        //internal void SyncValue(ref dynamic value)
+        //{
+        //    if (Main.netMode == NetmodeID.Server)
+        //    {
+        //        ChaosEdition.SyncValueQueue.Enqueue(value);
+        //    }
+        //    else if (Main.netMode == NetmodeID.MultiplayerClient)
+        //    {
+        //        value = ChaosEdition.SyncValueQueue.Dequeue();
+        //    }
+        //    else
+        //        throw new Exception("Multiplayer code running in singleplayer, report to mod dev.");
+        //}
     }
 
     //done

@@ -13,6 +13,7 @@ using Terraria.UI;
 using static ChaosEdition.ChaosEdition;
 using System.IO;
 using Terraria.Graphics.CameraModifiers;
+using System.Reflection;
 
 namespace ChaosEdition
 {
@@ -278,32 +279,41 @@ namespace ChaosEdition
 
         public override void HandlePacket(BinaryReader reader, int whoAmI)
         {
-            //TODO: request packet from client, send list of all active codes to client (figure out syncing custom data with codes)
             if(Main.netMode == NetmodeID.Server)
             {
                 int type = reader.Read7BitEncodedInt();
 
-                if (type == (int)PacketType.AllCodes)//inital message from joining client
+                if (type == (int)PacketType.AllCodes)//client requests all active codes and values with them
                 {
+                    //Main.NewText("Server received packet: " + type, Color.LightGreen);
+                    ModPacket modpacket = ModContent.GetInstance<ChaosEdition>().GetPacket();
+                    //modpacket.Write(256);//needs to be here for server(test without)
 
+                    //modpacket.Write(256);
+                    modpacket.WriteAllCodes(true);
+                    modpacket.WriteTime(0, false);
+
+                    modpacket.Send(whoAmI);//responds only to requester
                 }
-
-
             }
-            if (Main.netMode == NetmodeID.MultiplayerClient) 
+
+            if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 int type = reader.Read7BitEncodedInt();
-
                 if (type == (int)PacketType.AllCodes)//receiving from server after sending inital packet
                 {
+                    //Main.NewText("Client received packet: " + type);
+                    //Main.NewText("Server has sync'ed all active codes with this client");
 
+                    reader.ReadAllCodes();//reads codes (and extra values) and creates them
+
+                    if (reader.ReadBoolean())//should this keep reading
+                        type = reader.Read7BitEncodedInt();
                 }
-
-
-
 
                 if (type == (int)PacketType.Time)
                 {//type, time.now offset, seconds, bool
+                    //Main.NewText("Client received packet: " + type);
                     TimeLastCodeSelected = DateTime.Now.Subtract(new TimeSpan(0, 0, reader.Read7BitEncodedInt()));
                     CurrentExtraDelay = new TimeSpan(0, 0, reader.Read7BitEncodedInt());
 
@@ -313,12 +323,10 @@ namespace ChaosEdition
 
                 if(type == (int)PacketType.NewCode)
                 {//type, code type, code timespan
+                    //Main.NewText("Client received packet: " + type);
                     int codeTypeID = reader.Read7BitEncodedInt();
                     Code code = (Code)Activator.CreateInstance(CodeTypes[codeTypeID]);
                     code.TimeActiveSpan = new TimeSpan(0, 0, reader.Read7BitEncodedInt());
-
-                    //if (reader.ReadBoolean())//should this keep reading
-                    //    type = reader.Read7BitEncodedInt();
                 }
             }
         }
@@ -326,95 +334,131 @@ namespace ChaosEdition
 
     public static class ModPacketHelper
     {
-        public static void WriteAllCodes(this ModPacket modpacket, bool continueWriting)
+        public static void ReadAllCodes(this BinaryReader reader)
+        {
+            //bool continueloop = true;
+            while (true)
+            {
+                int codeTypeID = reader.Read7BitEncodedInt();
+
+                if (codeTypeID == -1)//this means end of code list
+                    break;
+
+                Type type = CodeTypes[codeTypeID];
+
+                Code code = (Code)Activator.CreateInstance(type);
+                code.TimeActiveSpan = new TimeSpan(0, 0, reader.Read7BitEncodedInt());
+
+                IEnumerable<FieldInfo> infos = type.GetFields().Where(info =>
+                     (info.GetCustomAttributes(typeof(NetSyncAttribute), false).Length > 0) &&
+                     (/*(!onlyFromType) || */(info.DeclaringType == type)));
+
+                foreach (var info in infos)
+                {
+                    info.SetValue(reader.ReadDynamic(info), code);
+                }
+            }
+        }
+
+        public static object ReadDynamic(this BinaryReader reader, FieldInfo info)
+        {
+            Type type = info.FieldType;
+            switch (info.FieldType)//?????????????????????????
+            {
+                case Type _ when type == typeof(bool):
+                    return reader.ReadBoolean();
+
+                case Type _ when type == typeof(int):
+                    return reader.Read7BitEncodedInt();
+
+                case Type _ when type == typeof(float):
+                    return reader.ReadSingle();
+
+                case Type _ when type == typeof(string):
+                    return reader.ReadString();
+
+                case Type _ when type == typeof(Vector2):
+                    return reader.ReadVector2();
+            }
+
+            throw new Exception("Unknown input type: " + info.FieldType.Name);
+        }
+
+        public static void WriteRequestAllCodes(this ModPacket modpacket)
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 modpacket.Write7BitEncodedInt((int)PacketType.AllCodes);//ask server for all codes
-                modpacket.Write(continueWriting);
+                //modpacket.Write(continueWriting);
             }
-            else if (Main.netMode == NetmodeID.Server)
-            {
-                SyncValueQueue.Clear();
-                List<(int typeID, int time, int valueCount)> activeCodeToSync = new List<(int typeID, int time, int valueCount)>();
-
-                #region find all active codes
-                void SyncCode(Code code) 
-                {
-                    Type type = code.GetType();
-                    if (ActiveEffects[type])
-                    {
-                        type.getf
-                        int oldCount = SyncValueQueue.Count;
-                        code.SyncMultiplayerValues();//if there are any values to sync, they get added to SyncValueQueue
-
-                        activeCodeToSync.Add((CodeTypeID[type], (int)code.TimeActiveSpan.TotalSeconds, SyncValueQueue.Count - oldCount));
-                    }
-                }
-
-                foreach (Code code in ActiveMenuCodes)
-                    SyncCode(code);
-                foreach (Code code in ActiveNpcCodes)
-                    SyncCode(code);
-                foreach (Code code in ActivePlayerCodes)
-                    SyncCode(code);
-                foreach (Code code in ActiveTileCodes)
-                    SyncCode(code);
-                foreach (Code code in ActiveItemCodes)
-                    SyncCode(code);
-                foreach (Code code in ActiveProjectileCodes)
-                    SyncCode(code);
-                foreach (Code code in ActiveMiscCodes)
-                    SyncCode(code);
-                #endregion
-
-                foreach((int typeID, int time, int valueCount) tosync in activeCodeToSync)
-                {
-                    modpacket.Write7BitEncodedInt((int)PacketType.NewCode);//creation of code
-                    modpacket.Write7BitEncodedInt(tosync.typeID);
-                    modpacket.Write7BitEncodedInt(tosync.time);
-                    for(int i = 0; i < tosync.valueCount; i++)
-                    {
-
-                    }
-
-                }
-            }
+            else
+                throw new Exception("Multiplayer client code running in singleplayer or server, report to mod dev");
         }
 
-        public enum Types
+        public static void WriteAllCodes(this ModPacket modpacket, bool continueWriting = false)
         {
-            boolType,
-            intType,
-            floatType,
-            stringType,
-            Vector2Type
+            //modpacket.Write(256); needs to start with this, should already be done outside this method
+            modpacket.Write7BitEncodedInt((int)PacketType.AllCodes);
+
+            #region forloops
+            foreach (Code code in ActiveMenuCodes)
+                SyncCode(code);
+            foreach (Code code in ActiveNpcCodes)
+                SyncCode(code);
+            foreach (Code code in ActivePlayerCodes)
+                SyncCode(code);
+            foreach (Code code in ActiveTileCodes)
+                SyncCode(code);
+            foreach (Code code in ActiveItemCodes)
+                SyncCode(code);
+            foreach (Code code in ActiveProjectileCodes)
+                SyncCode(code);
+            foreach (Code code in ActiveMiscCodes)
+                SyncCode(code);
+            #endregion
+
+            void SyncCode(Code code)
+            {
+                Type type = code.GetType();
+                if (ActiveEffects[type])
+                {
+                    modpacket.Write7BitEncodedInt(ChaosEdition.CodeTypeID[type]);
+                    modpacket.Write7BitEncodedInt((int)code.TimeActiveSpan.TotalSeconds);
+
+                    IEnumerable<FieldInfo> infos = type.GetFields().Where(info =>
+                         (info.GetCustomAttributes(typeof(NetSyncAttribute), false).Length > 0) &&
+                         (/*(!onlyFromType) || */(info.DeclaringType == type)));
+
+                    foreach (var info in infos)
+                    {
+                        modpacket.WriteDynamic(info.GetValue(code));
+                    }
+                }
+            }
+
+            modpacket.Write7BitEncodedInt(-1);
+            modpacket.Write(continueWriting);
         }
 
-        public static void WriteDynamic(this ModPacket modpacket, dynamic value)
+        public static void WriteDynamic(this ModPacket modpacket, object value)
         {
             //Type type = value.GetType();
 
             switch (value)//?????????????????????????
             {
                 case bool boolType:
-                    modpacket.Write7BitEncodedInt((int)Types.boolType);
                     modpacket.Write(boolType);
                     break;
                 case int intType:
-                    modpacket.Write7BitEncodedInt((int)Types.intType);
                     modpacket.Write7BitEncodedInt(intType);
                     break;
                 case float floatType:
-                    modpacket.Write7BitEncodedInt((int)Types.floatType);
                     modpacket.Write(floatType);
                     break;
                 case string stringType:
-                    modpacket.Write7BitEncodedInt((int)Types.stringType);
                     modpacket.Write(stringType);
                     break;
                 case Vector2 vector2Type:
-                    modpacket.Write7BitEncodedInt((int)Types.Vector2Type);
                     modpacket.WriteVector2(vector2Type);
                     break;
             }
@@ -428,12 +472,11 @@ namespace ChaosEdition
             modpacket.Write(continueWriting);
         }
 
-        public static void WriteNewCode(this ModPacket modpacket, Type type, TimeSpan TimeActiveSpan, bool continueWriting = false)
+        public static void WriteNewCode(this ModPacket modpacket, Type type, TimeSpan TimeActiveSpan)
         {
             modpacket.Write7BitEncodedInt((int)PacketType.NewCode);//creation of code
             modpacket.Write7BitEncodedInt(ChaosEdition.CodeTypeID[type]);
             modpacket.Write7BitEncodedInt((int)TimeActiveSpan.TotalSeconds);
-            //modpacket.Write(true);
         }
     }
 
@@ -449,7 +492,7 @@ namespace ChaosEdition
                 UpdateCodes();
         }
 
-        public override void PostUpdateInput()//gets called all the time
+        public override void PostUpdateInput()//gets called all the time (only in singleplayer)
         {
             if(Main.netMode != NetmodeID.Server) //will never be called anyway on server, here just to be safe
                 UpdateCodes();
@@ -511,12 +554,11 @@ namespace ChaosEdition
                             if (Main.netMode == NetmodeID.Server)//send these values to MP clients
                             {
                                 ModPacket modpacket = ModContent.GetInstance<ChaosEdition>().GetPacket();
-                                modpacket.Write(256);//??
+                                //modpacket.Write(256);//??
 
-                                modpacket.Write7BitEncodedInt(0);//time
-                                modpacket.Write7BitEncodedInt((int)NewCodeDelay.TotalSeconds);
-                                modpacket.Write7BitEncodedInt((int)CurrentExtraDelay.TotalSeconds);
-                                modpacket.Write(false);//stop reading
+                                //modpacket.WriteTime((int)NewCodeDelay.TotalSeconds, false);//creating a code instance already syncs this
+
+                                modpacket.Send();
                             }
                             return;
                         }
@@ -527,6 +569,19 @@ namespace ChaosEdition
 
             foreach (MiscCode code in ActiveMiscCodes)
                 code.Update();
+        }
+
+        public override void OnWorldLoad()
+        {
+            if(Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                //Main.NewText("client as just connected to game");
+                ChaosEdition.ClearAllCodes();
+
+                ModPacket modpacket = ModContent.GetInstance<ChaosEdition>().GetPacket();
+                modpacket.WriteRequestAllCodes();//request active codes, also sends time
+                modpacket.Send();
+            }
         }
 
 
