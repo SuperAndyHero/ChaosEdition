@@ -18,6 +18,9 @@ namespace ChaosEdition.Configs
         public bool ShowActiveEffectList { get { return ChaosEdition.ConfigDrawActiveCodes; } set { ChaosEdition.ConfigDrawActiveCodes = value; } }
 
         [DefaultValue(false)]
+        public bool ShowActiveEffectTime { get { return ChaosEdition.ConfigDrawActiveTimes; } set { ChaosEdition.ConfigDrawActiveTimes = value; } }
+
+        [DefaultValue(false)]
         public bool DebugShowAllEffects { get { return ChaosEdition.ConfigDrawFullCodeList; } set { ChaosEdition.ConfigDrawFullCodeList = value; } }
     }
 }

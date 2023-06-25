@@ -15,6 +15,7 @@ using Terraria.ModLoader;
 using Terraria.UI;
 using static Terraria.ModLoader.ModContent;
 using static ChaosEdition.ChaosEdition;
+using Terraria.Graphics.CameraModifiers;
 
 namespace ChaosEdition
 {
@@ -22,6 +23,9 @@ namespace ChaosEdition
     {
         public DateTime TimeCreatedAt = DateTime.Now;
         public TimeSpan TimeActiveSpan;
+
+        //todo: this may need to store a seed from the server, that way nothing should need to be synced after creation
+
         public virtual int MaxLengthSeconds => 40;//this gets scaled based on adjusted time delay, this could be replaced by a float where default delay = 1.0
         public virtual int MinLengthSeconds => (int)(MaxLengthSeconds * 0.5f);
         public virtual int NextExtraDelaySeconds => 0;
@@ -46,18 +50,11 @@ namespace ChaosEdition
                 if(Main.netMode == NetmodeID.Server)//send these values to MP clients
                 {
                     ModPacket modpacket = GetInstance<ChaosEdition>().GetPacket();
-                    modpacket.Write(256);//??
+                    modpacket.Write(256);//needs to be here of server(?)
 
-                    modpacket.Write7BitEncodedInt(0);//time
-                    modpacket.Write7BitEncodedInt(0);//offset to time.now, which is set when this packet is received
-                    modpacket.Write7BitEncodedInt((int)CurrentExtraDelay.TotalSeconds);
-                    modpacket.Write(true);//keep reading
+                    modpacket.WriteTime(0, true);
 
-                    modpacket.Write7BitEncodedInt(1);//creation of code
-                    modpacket.Write7BitEncodedInt(ChaosEdition.CodeTypeID[type]);
-                    modpacket.Write7BitEncodedInt((int)TimeActiveSpan.TotalSeconds);
-                    //no bool needed for now as this is last type
-                    //may need extra value for other stuff / syncing randomness
+                    modpacket.WriteNewCode(type, TimeActiveSpan);
                 }
 
 
@@ -85,6 +82,23 @@ namespace ChaosEdition
                 return true;
             }
             return false;
+        }
+
+        //use SyncValue here
+        public virtual void SyncMultiplayerValues() { }
+
+        internal void SyncValue(ref dynamic value)
+        {
+            if (Main.netMode == NetmodeID.Server)
+            {
+                ChaosEdition.SyncValueQueue.Enqueue(value);
+            }
+            else if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                value = ChaosEdition.SyncValueQueue.Dequeue();
+            }
+            else
+                throw new Exception("Multiplayer code running in singleplayer, report to mod dev.");
         }
     }
 
@@ -191,5 +205,6 @@ namespace ChaosEdition
         public sealed override List<Code> ContainingList => ChaosEdition.ActiveMiscCodes;
         public virtual void Draw(SpriteBatch sb) { }
         public virtual void Update() { }
+        public virtual void UpdateCamera(ref CameraInfo cameraInfo) { }
     }
 }

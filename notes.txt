@@ -11,6 +11,8 @@ also maybe split CodeTypes array into per code type arrays, and add code type ba
 possibly a bool for if a code should be instant, if needed. As of now this can reply on time values
 //TODO: request packet from client, send list of all active codes to client (figure out syncing custom data with codes)
 //TODO find better hook for adding/removing codes, PostUpdateInput does not run on server
+chest swap: null check
+backup: SyncMultiplayerValues would instead use Attributes instead of user defined method
 
 
 

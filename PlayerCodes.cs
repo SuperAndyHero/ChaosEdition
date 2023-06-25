@@ -476,8 +476,8 @@ namespace ChaosEdition
         public override int MinLengthSeconds => 25;
 
         public override int NextExtraDelaySeconds => 40;
-        bool ran = false;
-        int npcIndex = -1;
+        bool ran = false;//no sync
+        int npcIndex = -1;//no sync
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (!ran)
@@ -581,6 +581,26 @@ namespace ChaosEdition
                     WorldGen.SquareTileFrame(i, j);
                 }
             }
+        }
+    }
+
+    public class CloudScroll : PlayerCode
+    {
+        public override int MaxLengthSeconds => 10;
+        public override int MinLengthSeconds => 3;
+
+        public override int NextExtraDelaySeconds => -5;
+
+        bool ran = false;
+        Vector2 pos;
+        public override void PreDrawPlayer(SpriteBatch sb, Player player, ModPlayer modPlayer = null)
+        {
+            if (!ran)
+            {
+                pos = Main.screenPosition;
+                ran = true;
+            }
+            Main.screenLastPosition = pos;
         }
     }
 

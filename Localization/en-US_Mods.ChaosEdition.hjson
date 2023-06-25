@@ -54,5 +54,10 @@ Configs: {
 			Label: Show Active Effect List
 			Tooltip: ""
 		}
+
+		ShowActiveEffectTime: {
+			Label: Show Active Effect Time
+			Tooltip: ""
+		}
 	}
 }
