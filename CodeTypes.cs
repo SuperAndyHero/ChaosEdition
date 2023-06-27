@@ -35,11 +35,12 @@ namespace ChaosEdition
 
         public Code()
         {
-            Type type = GetType();
+            //Type type = GetType();
             if (!EffectBools[GetType()])
             {
                 if (Main.netMode != NetmodeID.MultiplayerClient)//server sends these values beforehand(or singleplayer)
                 {
+                    //TODO: split delay scale and have this use new EffectLengthScale
                     TimeActiveSpan = new TimeSpan(0, 0, (int)(Main.rand.Next(MinLengthSeconds, MaxLengthSeconds + 1) * TimeDelayScale));
 
                     ChaosEdition.TimeLastCodeSelected = DateTime.Now;
@@ -52,11 +53,16 @@ namespace ChaosEdition
                     ModPacket modpacket = GetInstance<ChaosEdition>().GetPacket();
                     //modpacket.Write(256);//needs to be here for server(test without)
 
+                    //syncing this could be moved to whatever is creating this
                     modpacket.WriteTime(0, true);
-                    modpacket.WriteNewCode(type, TimeActiveSpan);
+                    modpacket.WriteNewCode(this, TimeActiveSpan);//also syncs values with attribute (since field initalizers run before the ctor)
                     modpacket.Send();
                 }
 
+                else if(Main.LocalPlayer.inventory[9].type == ItemID.Gel)//debug
+                {
+                    Main.NewText(GetType().Name);
+                }
 
                 EffectBools[GetType()] = true;
                 ContainingList.Add(this);

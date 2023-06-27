@@ -322,11 +322,9 @@ namespace ChaosEdition
                 }
 
                 if(type == (int)PacketType.NewCode)
-                {//type, code type, code timespan
+                {
                     //Main.NewText("Client received packet: " + type);
-                    int codeTypeID = reader.Read7BitEncodedInt();
-                    Code code = (Code)Activator.CreateInstance(CodeTypes[codeTypeID]);
-                    code.TimeActiveSpan = new TimeSpan(0, 0, reader.Read7BitEncodedInt());
+                    reader.ReadNewCode();
                 }
             }
         }
@@ -383,6 +381,26 @@ namespace ChaosEdition
 
             throw new Exception("Unknown input type: " + info.FieldType.Name);
         }
+
+        public static void ReadNewCode(this BinaryReader reader)//may need a continiue option for sending multiple at once?
+        {
+            int codeTypeID = reader.Read7BitEncodedInt();
+            Type type = CodeTypes[codeTypeID];
+            Code code = (Code)Activator.CreateInstance(type);
+            code.TimeActiveSpan = new TimeSpan(0, 0, reader.Read7BitEncodedInt());
+
+            IEnumerable<FieldInfo> infos = type.GetFields().Where(info =>
+                     (info.GetCustomAttributes(typeof(NetSyncAttribute), false).Length > 0) &&
+                     (info.DeclaringType == type));
+
+            foreach (var info in infos)
+            {
+                object var1 = reader.ReadDynamic(info);
+                info.SetValue(code, var1);
+            }
+        }
+
+
 
         public static void WriteRequestAllCodes(this ModPacket modpacket)
         {
@@ -472,11 +490,22 @@ namespace ChaosEdition
             modpacket.Write(continueWriting);
         }
 
-        public static void WriteNewCode(this ModPacket modpacket, Type type, TimeSpan TimeActiveSpan)
+        public static void WriteNewCode(this ModPacket modpacket, Code code, TimeSpan TimeActiveSpan)
         {
+            Type type = code.GetType();
+
             modpacket.Write7BitEncodedInt((int)PacketType.NewCode);//creation of code
             modpacket.Write7BitEncodedInt(ChaosEdition.CodeTypeID[type]);
             modpacket.Write7BitEncodedInt((int)TimeActiveSpan.TotalSeconds);
+
+            IEnumerable<FieldInfo> infos = type.GetFields().Where(info =>
+                     (info.GetCustomAttributes(typeof(NetSyncAttribute), false).Length > 0) &&
+                     (info.DeclaringType == type));
+
+            foreach (var info in infos)
+            {
+                modpacket.WriteDynamic(info.GetValue(code));
+            }
         }
     }
 
@@ -554,10 +583,7 @@ namespace ChaosEdition
                             if (Main.netMode == NetmodeID.Server)//send these values to MP clients
                             {
                                 ModPacket modpacket = ModContent.GetInstance<ChaosEdition>().GetPacket();
-                                //modpacket.Write(256);//??
-
-                                //modpacket.WriteTime((int)NewCodeDelay.TotalSeconds, false);//creating a code instance already syncs this
-
+                                modpacket.WriteTime((int)NewCodeDelay.TotalSeconds, false);//sends time since it gets changed in this case
                                 modpacket.Send();
                             }
                             return;

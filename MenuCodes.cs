@@ -20,8 +20,8 @@ namespace ChaosEdition
         {
             foreach (GameInterfaceLayer layer in layers)
             {
-                if (Main.rand.Next(300) == 0) {
-                    if (Main.rand.Next(3) == 0)
+                if (Main.rand.NextBool(300)) {
+                    if (Main.rand.NextBool(3))
                         layer.ScaleType = InterfaceScaleType.None;
                     else
                         layer.ScaleType = Main.rand.NextBool() ? InterfaceScaleType.Game : InterfaceScaleType.UI;

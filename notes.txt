@@ -15,9 +15,54 @@ possibly a bool for if a code should be instant, if needed. As of now this can r
 chest swap: null check
 backup: SyncMultiplayerValues would instead use Attributes instead of user defined method
 issue of desyncing values after effect activation (needs post resyncs, and/or defined seed)
+figure out why EnemyHoming used Main.LocalPlayer.gravity = 0.5f;
+copy screen minigames
+enable confusion debuff
+fix bouncytiles MP
 
-many effects need sync attribute
+3 or 4 effects are disabled in MP
 
+DISABLE GRAVES!!!
+
+To test in MP:
+Santa(might use ran bool?)
+DropHeldItemRandom(does not remove item, dupe)
+AlwaysDropOneSlot(does not remove item, dupe)
+DropCoinsRandom(does not remove item, dupe)
+DropTombstoneRandom
+MakeOneItemBait
+ChristmasGift
+ExplosiveDiarrhea
+GrowTallPLants
+TeleportEnemiesAroundPlayer
+RandomTeleport (Host only, ran bool issue)
+proj to critters(works, sometimes kills the creature)
+BoulderDrop(no text)
+Gravity (works, too short)
+MultNpcSpeed (too long extra delay)
+Unknown(too long extra delay)
+freeze camera(too short)
+invert screen(too annoying, maybe shorten, needs option)
+lead to gold(make work on bars)
+could scroll (too short)
+small items(centering is broken, requested to keep as is)
+weird item dupe when picking items with full inv, skipps can do it, I cant
+item layer colors (alpha colors work)
+explosive diarria(does nothing)
+one of the UI scales (breaks all UI)
+npc speed mult is broken?
+lower gravity is too short, works
+slime ghost (sometimes is too short)
+place random torch (never seen it?)
+
+broken:
+RandomColors
+ScrollingColors
+any player effect with ran bool
+dropping items dupe them
+both that use GameUpdate % == 0 are broken
+
+DONE many effects need sync attribute
 DONE remove pick tile
 DONE chance if wormhole into caves, welcome to the underground message
 DONE idea: make one item very big
@@ -25,3 +70,4 @@ DONE make small items length shorter
 DONE debug text on boulder (feedback says some warning text is good)
 DONE idea: make santa drop bombs
 DONE codes too fast
+DONE debug text in mp if last slot is slime

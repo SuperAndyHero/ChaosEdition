@@ -11,6 +11,7 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.Graphics.CameraModifiers;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -45,35 +46,44 @@ namespace ChaosEdition
         public override int MinLengthSeconds => 1;
 
         public override int NextExtraDelaySeconds => -25;
+
+        [NetSync]
+        public int index = Main.rand.Next(Main.tileCut.Length);
+
         bool ran = false;
+
         public override void Update()
         {
             if (!ran)
             {
-                int index = Main.rand.Next(Main.tileCut.Length);
                 Main.tileCut[index] = !Main.tileCut[index];
                 ran = true;
             }
         }
     }
 
+    //TODO: sync change amount and maybe a seed fort he random, just made sure all are synced/determainate
     public class MakeRandomTilesBouncy : MiscCode
     {
         public override int MaxLengthSeconds => 1;
         public override int MinLengthSeconds => 1;
 
         public override int NextExtraDelaySeconds => -30;
+
+        [NetSync]
+        public int index = Main.rand.Next(Main.tileBouncy.Length);
+
         bool ran = false;
         public override void Update()
         {
             if (!ran)
             {
-                int tileChangeCount = Main.rand.Next(1, 6);
-                for (int i = 0; i < tileChangeCount; i++)
-                {
-                    int index = Main.rand.Next(Main.tileBouncy.Length);
+                //int tileChangeCount = Main.rand.Next(1, 6);
+                //for (int i = 0; i < tileChangeCount; i++)
+                //{
+                    //int index = Main.rand.Next(Main.tileBouncy.Length);
                     Main.tileBouncy[index] = true;
-                }
+                //}
                 ran = true;
             }
         }
@@ -133,13 +143,13 @@ namespace ChaosEdition
         {
             if (!ran)
             {
-                Main.AnglerQuestSwap();
+                Main.AnglerQuestSwap();//has internal netmode check
                 ran = true;
             }
         }
     }
 
-    //public class SwapChests : MiscCode
+    //public class SwapChests : MiscCode//todo: use null check to see if chest exists
     //{
     //    public override int MaxLengthSeconds => 1;
     //    public override int MinLengthSeconds => 1;
@@ -168,13 +178,17 @@ namespace ChaosEdition
 
         bool ran = false;
         Vector2[] vec2array;
-        int arrayLength;
+
+        [NetSync]
+        public int arrayLength = Main.rand.Next(20, 121);//not used on server, but synced for all clients to share the same
 
         public override void UpdateCamera(ref CameraInfo cameraInfo)
         {
+            if (Main.netMode == NetmodeID.Server)//unsure if UpdateCamena runs on server
+                return;
+
             if (!ran)
             {
-                arrayLength = Main.rand.Next(20, 121);
                 vec2array = Enumerable.Repeat(cameraInfo.CameraPosition, arrayLength).ToArray();
                 ran = true;
             }

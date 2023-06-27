@@ -32,12 +32,14 @@ namespace ChaosEdition.Npcs
 
         public override void OnSpawn(IEntitySource source)
         {
-            NPC.ai[0] = Main.rand.Next(1800, 7200);
+            NPC.ai[0] = Main.rand.Next(25 * 20, 150 * 20);
         }
         const float maxSpeed = 2.5f;
         const int fadeoutTime = 180;
         public override void AI()
         {
+            NPC.ai[1]++;
+
             NPC.TargetClosestUpgraded(false);
             //NPC.frame = new Microsoft.Xna.Framework.Rectangle(0, 0, (int)(NPC.Size.X), (int)(NPC.Size.Y));
             NPC.rotation = (float)Math.Sin((Main.GameUpdateCount / 100f) + ((float)NPC.whoAmI * 2)) * 0.3f;
@@ -45,7 +47,7 @@ namespace ChaosEdition.Npcs
             {
                 float maxSpeed = 2.5f;
                 Vector2 targetPos = NPC.targetRect.Center.ToVector2();
-                float velrot = (float)Math.Sin((Main.GameUpdateCount / 75f) + Math.Pow((float)NPC.whoAmI, 2)) * 0.8f;
+                float velrot = (float)Math.Sin((NPC.ai[1] / 75f) + Math.Pow((float)NPC.whoAmI, 2)) * 0.8f;
                 NPC.velocity += Vector2.Normalize(targetPos - NPC.Center).RotatedBy(velrot) * 0.03f;
 
                 if (NPC.velocity.Length() > maxSpeed)

@@ -46,7 +46,8 @@ namespace ChaosEdition
 
         public override int NextExtraDelaySeconds => -10;
 
-        private float itemscale => 0.5f;
+        [NetSync]
+        public float itemscale = Main.rand.NextFloat(0.33f, 0.9f);
 
         public override bool PreDrawInInventory(Item item, SpriteBatch spriteBatch, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
         {

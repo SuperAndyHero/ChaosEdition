@@ -10,6 +10,29 @@ namespace ChaosEdition
 {
     public static class HelperMethods
     {
+        /// <summary>
+        /// returns Vector2.Zero if none are found
+        /// </summary>
+        public static Vector2 NearestPlayerCenter(Vector2 targetPos)
+        {
+            Vector2 closest = Vector2.Zero;
+            float lastDistance = 1000000;
+            foreach(Player player in Main.player)
+            {
+                if (!player.active || player.DeadOrGhost)
+                    continue;
+
+                float distance = player.DistanceSQ(targetPos);
+                if (distance < lastDistance)
+                {
+                    lastDistance = distance;
+                    closest = player.Center;
+                }
+            }
+
+            return closest;
+        }
+
         public static void DrawStar(Vector2 position, int dustType, float pointAmount = 5, float mainSize = 1, float dustDensity = 1, float dustSize = 1f, float pointDepthMult = 1f, float pointDepthMultOffset = 0.5f, float randomAmount = 0, float rotationAmount = -1)
         {
             float rot;

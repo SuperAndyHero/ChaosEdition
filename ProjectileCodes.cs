@@ -50,7 +50,14 @@ namespace ChaosEdition
 
         public override void AI(Projectile projectile)
         {
-            projectile.velocity += Vector2.Normalize(Main.LocalPlayer.Center - projectile.position) * 0.2f;
+            Vector2 closetPlayerCenter = Main.netMode == NetmodeID.SinglePlayer ? //only runs slow netsafe version on multiplayer
+                Main.LocalPlayer.Center :
+                HelperMethods.NearestPlayerCenter(projectile.Center);
+
+            if (closetPlayerCenter == Vector2.Zero)
+                return;
+
+            projectile.velocity += Vector2.Normalize(closetPlayerCenter - projectile.position) * 0.2f;
         }
     }
 
@@ -61,9 +68,17 @@ namespace ChaosEdition
 
         public override int NextExtraDelaySeconds => 5;
 
+
         public override void AI(Projectile projectile)
         {
-            projectile.velocity += Vector2.Normalize(projectile.position - Main.LocalPlayer.Center) * 0.4f;
+            Vector2 closetPlayerCenter = Main.netMode == NetmodeID.SinglePlayer ? //only runs slow netsafe version on multiplayer
+                Main.LocalPlayer.Center :
+                HelperMethods.NearestPlayerCenter(projectile.Center);
+
+            if (closetPlayerCenter == Vector2.Zero)
+                return;
+
+            projectile.velocity += Vector2.Normalize(projectile.position - closetPlayerCenter) * 0.4f;
         }
     }
 
@@ -74,16 +89,25 @@ namespace ChaosEdition
 
         public override int NextExtraDelaySeconds => 20;
 
-        public readonly bool dir = Main.rand.NextBool();
+        [NetSync]
+        public bool dir = Main.rand.NextBool();
 
         public override void AI(Projectile projectile)
         {
-            Vector2 velAdd = Vector2.Normalize(projectile.position - Main.LocalPlayer.Center).RotatedBy(dir ? (Math.PI / 2 + 0.6f) : (-Math.PI / 2 + -0.6f)) * projectile.velocity.Length() * 0.06f;
+            Vector2 closetPlayerCenter = Main.netMode == NetmodeID.SinglePlayer ? //only runs slow netsafe version on multiplayer
+                Main.LocalPlayer.Center :
+                HelperMethods.NearestPlayerCenter(projectile.Center);
+
+            if (closetPlayerCenter == Vector2.Zero)
+                return;
+
+            Vector2 velAdd = Vector2.Normalize(projectile.position - closetPlayerCenter).RotatedBy(dir ? (Math.PI / 2 + 0.6f) : (-Math.PI / 2 + -0.6f)) * projectile.velocity.Length() * 0.06f;
             projectile.velocity *= 0.95f;
             projectile.velocity += velAdd;
         }
     }
 
+    //TODO: sync npc creation
     public class ProjectilesIntoCritters : ProjectileCode
     {
         public override int MaxLengthSeconds => 35;
@@ -92,45 +116,41 @@ namespace ChaosEdition
 
         public override int NextExtraDelaySeconds => 10;
 
-        public int critterType = NPCID.Frog;
+        //these are not synced since the client does not need them
+        public int critterType = PickRandomCritter();
         public int chance = Main.rand.Next(75, 500);
-        public ProjectilesIntoCritters() : base()
+
+        public static int PickRandomCritter()
         {
             switch (Main.rand.Next(9))
             {
-                case 0:
-                    critterType = NPCID.Frog;
-                    break;
+                default:
+                    return NPCID.Frog;
                 case 1:
-                    critterType = NPCID.Duck;
-                    break;
+                    return NPCID.Duck;
                 case 2:
-                    critterType = NPCID.Bunny;
-                    break;
+                    return NPCID.Bunny;
                 case 3:
-                    critterType = NPCID.Grubby;
-                    break;
+                    return NPCID.Grubby;
                 case 4:
-                    critterType = NPCID.Worm;
-                    break;
+                    return NPCID.Worm;
                 case 5:
-                    critterType = NPCID.Penguin;
-                    break;
+                    return NPCID.Penguin;
                 case 6:
-                    critterType = NPCID.Squirrel;
-                    break;
+                    return NPCID.Squirrel;
                 case 7:
-                    critterType = NPCID.Bird;
-                    break;
+                    return NPCID.Bird;
                 case 8:
-                    critterType = NPCID.Snail;
-                    break;
+                    return NPCID.Snail;
             }
         }
 
         public override void AI(Projectile projectile)
         {
-            if (Main.rand.NextBool(chance)&& projectile.active)
+            if (Main.netMode == NetmodeID.MultiplayerClient)//serverside
+                return;
+
+            if (Main.rand.NextBool(chance) && projectile.active)
             {
                 projectile.active = false;
                 projectile.damage = 0;
