@@ -47,5 +47,17 @@ namespace ChaosEdition
             foreach (NpcCode code in ChaosEdition.ActiveNpcCodes)
                 code.PostDraw(npc, spriteBatch, drawColor, npc.ModNPC);
         }
+
+        public override void OnKill(NPC npc)
+        {
+            foreach (NpcCode code in ChaosEdition.ActiveNpcCodes)
+                code.OnKill(npc);
+        }
+
+        public override void HitEffect(NPC npc, NPC.HitInfo hit)
+        {
+            foreach (NpcCode code in ChaosEdition.ActiveNpcCodes)
+                code.HitEffect(npc, hit);
+        }
     }
 }

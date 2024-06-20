@@ -10,23 +10,24 @@ using Terraria.UI;
 
 namespace ChaosEdition
 {
-    public class MenuScaleType : MenuCode
-    {
-        public override int MaxLengthSeconds => 3;
+    //broken for many people
+    //public class MenuScaleType : MenuCode
+    //{
+    //    public override int MaxLengthSeconds => 3;
 
-        public override int NextExtraDelaySeconds => -20;
+    //    public override int NextExtraDelaySeconds => -20;
 
-        public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
-        {
-            foreach (GameInterfaceLayer layer in layers)
-            {
-                if (Main.rand.NextBool(300)) {
-                    if (Main.rand.NextBool(3))
-                        layer.ScaleType = InterfaceScaleType.None;
-                    else
-                        layer.ScaleType = Main.rand.NextBool() ? InterfaceScaleType.Game : InterfaceScaleType.UI;
-                }
-            }
-        }
-    }
+    //    public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
+    //    {
+    //        foreach (GameInterfaceLayer layer in layers)
+    //        {
+    //            if (Main.rand.NextBool(300)) {
+    //                if (Main.rand.NextBool(3))
+    //                    layer.ScaleType = InterfaceScaleType.None;
+    //                else
+    //                    layer.ScaleType = Main.rand.NextBool() ? InterfaceScaleType.Game : InterfaceScaleType.UI;
+    //            }
+    //        }
+    //    }
+    //}
 }

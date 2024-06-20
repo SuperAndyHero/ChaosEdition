@@ -72,6 +72,12 @@ namespace ChaosEdition
         public static int ConfigMaxActiveCodes = 10;
         #endregion
 
+        #region TEMP BOOLS FOR CODES (todo: make this a generated list)
+        public static bool DirtRodEffectActive = true;
+        public static bool RandomItemFiresaleActive = true;
+        public static bool HugeItemActive = true;
+        #endregion
+
         //todo: split this into another mod, make swaps determainistic, make it possible to undo swaps, call it terraria corruptor or something
         //public static List<Detour> ActiveDetours = new List<Detour>();//for random method swapping
 

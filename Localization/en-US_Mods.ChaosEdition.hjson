@@ -60,4 +60,13 @@ Configs: {
 			Tooltip: ""
 		}
 	}
+
+	DisableEffectsConfig: {
+		DisplayName: Disable Effects Config
+
+		EnableDirtRodEffect: {
+			Label: Enable Dirt Rod Effect
+			Tooltip: ""
+		}
+	}
 }

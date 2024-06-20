@@ -128,4 +128,20 @@ namespace ChaosEdition
             npc.rotation += rotationAmount;
         }
     }
+
+    public class EnemiesCantDie : NpcCode
+    {
+        public override int MaxLengthSeconds => 20;
+
+        public override int MinLengthSeconds => 10;
+
+
+        public override void HitEffect(NPC npc, NPC.HitInfo hit)
+        {
+            if(npc.life <= 0)
+            {
+                npc.life = 5;
+            }
+        }
+    }
 }

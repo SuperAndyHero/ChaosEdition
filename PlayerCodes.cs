@@ -137,6 +137,9 @@ namespace ChaosEdition
 
         public override int NextExtraDelaySeconds =>  -20;
         bool ran = false;
+
+        [NetSync]
+        public int index = Main.rand.Next(Main.LocalPlayer.inventory.Length);
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (Main.netMode == NetmodeID.Server)//clientside
@@ -144,7 +147,6 @@ namespace ChaosEdition
 
             if (!ran)//unsure if the server needs to know if an item is bait
             {
-                int index = Main.rand.Next(player.inventory.Length);
                 player.inventory[index].bait = Main.rand.Next(1, 1000);
                 ran = true;
                 //Main.NewText(player.inventory[index].Name + " " + player.inventory[index].bait);
@@ -161,23 +163,23 @@ namespace ChaosEdition
         public override int NextExtraDelaySeconds => -3;
         bool ran = false;
 
-        //public int ItemSlotIndex = Main.rand.Next(player.inventory.Length);
-
         Item iteminstance;//use a dict?
+
+        [NetSync]
+        public int index = Main.rand.Next(Main.LocalPlayer.inventory.Length);
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (!ran)
             {
-                if (Main.netMode != NetmodeID.SinglePlayer)
+                if (ChaosEdition.HugeItemActive)
                 {
-                    if (EffectBools[GetType()])//disable in multiplayer
+                    if (EffectBools[GetType()])
                         Remove();
 
                     ran = true;
                     return;
                 }
 
-                int index = Main.rand.Next(player.inventory.Length);
                 iteminstance = player.inventory[index];
 
                 if(iteminstance is null || iteminstance.IsAir)
@@ -207,25 +209,31 @@ namespace ChaosEdition
         public override int NextExtraDelaySeconds => -7;
         bool ran = false;
         Item selectedItem;
+
+        [NetSync]
+        public int seed = Main.rand.Next(1000000);
+
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (!ran)
             {
-                if (Main.netMode != NetmodeID.SinglePlayer)
+                if (ChaosEdition.RandomItemFiresaleActive)
                 {
-                    if (EffectBools[GetType()])//disable in multiplayer
+                    if (EffectBools[GetType()])
                         Remove();
 
                     ran = true;
                     return;
                 }
 
+                Random random = new Random(seed);
+
                 int index = Main.rand.Next(player.inventory.Length);
                 for (int i = 0; i < 10; i++)
                 {
                     if(player.inventory[index] == null || player.inventory[index].IsAir || player.inventory[index].IsACoin)
                     {
-                        index = Main.rand.Next(player.inventory.Length);
+                        index = random.Next(player.inventory.Length);
                     }
                     else
                         break;
@@ -240,9 +248,11 @@ namespace ChaosEdition
 
                 int originalPrice = selectedItem.GetStoreValue();
 
+                random = new Random(seed);
+
                 selectedItem.shopCustomPrice =
-                    originalPrice > Item.buyPrice(0, 1, 0, 0) ? originalPrice * Main.rand.Next(3, 10) :
-                        originalPrice > Item.buyPrice(0, 0, 1, 0) ? originalPrice * Main.rand.Next(30, 50) :
+                    originalPrice > Item.buyPrice(0, 1, 0, 0) ? originalPrice * random.Next(3, 10) :
+                        originalPrice > Item.buyPrice(0, 0, 1, 0) ? originalPrice * random.Next(30, 50) :
                             originalPrice == 0 ? Item.buyPrice(0, 0, 2, 0) : Item.buyPrice(0, 0, 5, 0);
 
                 Main.NewText("Firesale! Your '" + selectedItem.Name + "' is worth much more for a limited time!   Ends in 10 seconds.", new Color(255, 100, 25));
@@ -276,7 +286,7 @@ namespace ChaosEdition
         {
             if (!ran)
             {
-                player.HeldItem.damage += DamageChangeDirection ? 1 : -1;
+                player.HeldItem.damage += DamageChangeDirection ? 3 : -3;
                 ran = true;
             }
         }
@@ -292,11 +302,14 @@ namespace ChaosEdition
         bool ran = false;
         Player playerInstance;//unsure of multiplater compat
 
+        [NetSync]
+        public int damage = Main.hardMode ? Main.rand.Next(400, 1600) : Main.rand.Next(180, 350);
+
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (!ran)
             {
-                if (Main.netMode != NetmodeID.SinglePlayer)
+                if (!ChaosEdition.DirtRodEffectActive)
                 {
                     if (EffectBools[GetType()])//disable in multiplayer
                         Remove();
@@ -307,7 +320,7 @@ namespace ChaosEdition
 
                 playerInstance = player;
                 int index = Item.NewItem(player.GetSource_GiftOrReward(), player.position, ItemID.DirtRod);
-                Main.item[index].damage = Main.hardMode ? Main.rand.Next(400, 1600) : Main.rand.Next(180, 350);
+                Main.item[index].damage = damage;
 
                 ran = true;
             }
@@ -341,8 +354,8 @@ namespace ChaosEdition
 
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
-                    bool evilsanta = Main.rand.NextBool(12);
-                    bool halloween = Main.rand.NextBool(24);
+                    bool evilsanta = Main.rand.NextBool(8);
+                    bool halloween = Main.rand.NextBool(16);
                     for (int i = -10; i < 10; i++)
                     {
                         if (evilsanta)
@@ -365,7 +378,7 @@ namespace ChaosEdition
         public override int MaxLengthSeconds => 5;
         public override int MinLengthSeconds => 4;
 
-        //[NetSync]//server spawns proj
+        [NetSync]
         public int projectileType = PickRandomGrenade();
 
         public ExplosiveDiarrhea() : base()
@@ -390,18 +403,18 @@ namespace ChaosEdition
 
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
-            if (Main.netMode == NetmodeID.MultiplayerClient)
+            if (Main.netMode == NetmodeID.Server)
                 return;
 
             if (Main.GameUpdateCount % 40 == 0)
             {
-                Projectile.NewProjectile(player.GetSource_GiftOrReward(), player.Center, new Vector2(Main.rand.NextFloat(-0.1f, 0.1f), 0), projectileType, 100, 1, player.whoAmI);
+                Projectile.NewProjectile(player.GetSource_Loot(), player.Center, new Vector2(Main.rand.NextFloat(-0.1f, 0.1f), 0), projectileType, 100, 1, player.whoAmI);
             }
             //Main.NewText(counter);
         }
     }
 
-    //may need tile syncs
+    //may need tile syncs, seems to work fine
     public class GrowTallPLants : PlayerCode
     {
         public override int MaxLengthSeconds => 10;
@@ -520,7 +533,6 @@ namespace ChaosEdition
         }
     }
 
-    //Check if this works in multiplayer
     public class RandomTeleport : PlayerCode
     {
         public override int MaxLengthSeconds => 1;
@@ -530,8 +542,8 @@ namespace ChaosEdition
         bool ran = false;
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
-            if (Main.netMode == NetmodeID.MultiplayerClient)
-                return;
+            //if (Main.netMode == NetmodeID.Server)
+            //    return;
 
             if (!ran)
             {
@@ -592,24 +604,25 @@ namespace ChaosEdition
     }
 
     //TODO: text does not show in MP
-    public class BoulderDrop : PlayerCode
-    {
-        public override int MaxLengthSeconds => 80;
-        public override int MinLengthSeconds => 20;
+    //public class BoulderDrop : PlayerCode
+    //{
+    //    public override int MaxLengthSeconds => 80;
+    //    public override int MinLengthSeconds => 20;
 
-        public override int NextExtraDelaySeconds => 5;
-        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
-        {
-            if (Main.netMode == NetmodeID.MultiplayerClient)//serverside
-                return;
+    //    public override int NextExtraDelaySeconds => 5;
+    //    public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+    //    {
+    //        if (Main.netMode == NetmodeID.MultiplayerClient)//serverside
+    //            return;
 
-            if (Main.rand.NextBool(1000))
-            {
-                Main.NewText("Look out!", Color.LightYellow);
-                Projectile.NewProjectile(player.GetSource_GiftOrReward(), player.Center + new Vector2(Main.rand.Next(-1, 2), -Main.screenHeight / 1.9f), new Vector2(0, 2f), ProjectileID.Boulder, 200, 1);
-            }
-        }
-    }
+    //        if (Main.rand.NextBool(1000))
+    //        {
+    //            Main.NewText("Look out!", Color.LightYellow);
+    //            //positioning is broken in MP
+    //            Projectile.NewProjectile(player.GetSource_GiftOrReward(), player.Center + new Vector2(Main.rand.Next(-1, 2), -Main.screenHeight / 1.9f), new Vector2(0, 2f), ProjectileID.Boulder, 200, 1);
+    //        }
+    //    }
+    //}
 
     public class OresToLead : PlayerCode
     {
@@ -645,19 +658,26 @@ namespace ChaosEdition
             if (Main.netMode == NetmodeID.MultiplayerClient)//serverside
                 return;
 
-            if (Main.rand.NextBool(10))
+            const int radius = 30;
+
+            //for (int f = 0; f < 3; f++)
+            //{
+
+            int i = (int)(player.Center.X / 16) + Main.rand.Next(-radius, radius + 1);
+            int j = (int)(player.Center.Y / 16) + Main.rand.Next(-radius, radius + 1);
+
+            if (OreSet.Contains(Main.tile[i, j].TileType))
             {
-                const int radius = 10;
+                Main.tile[i, j].Get<TileTypeData>().Type = TileID.Lead;
+                WorldGen.SquareTileFrame(i, j);
+                NetMessage.SendTileSquare(Main.myPlayer, i, j, 1, 1, TileChangeType.None);
+            }
 
-                int i = (int)(player.Center.X / 16) + Main.rand.Next(-radius, radius + 1);
-                int j = (int)(player.Center.Y / 16) + Main.rand.Next(-radius, radius + 1);
-
-                if (OreSet.Contains(Main.tile[i, j].TileType))
-                {
-                    Main.tile[i, j].Get<TileTypeData>().Type = TileID.Lead;
-                    WorldGen.SquareTileFrame(i, j);
-                    NetMessage.SendTileSquare(Main.myPlayer, i, j, 1, 1, TileChangeType.None);
-                }
+            if (Main.tile[i, j].TileType == TileID.MetalBars)
+            {
+                Main.tile[i, j].Get<TileWallWireStateData>().TileFrameX = 18 * 3;
+                WorldGen.SquareTileFrame(i, j);
+                NetMessage.SendTileSquare(Main.myPlayer, i, j, 1, 1, TileChangeType.None);
             }
         }
     }
@@ -673,19 +693,26 @@ namespace ChaosEdition
             if (Main.netMode == NetmodeID.MultiplayerClient)//serverside
                 return;
 
-            if (Main.rand.NextBool(7))
+            const int radius = 35;
+
+            //for (int f = 0; f < 4; f++)
+            //{
+
+            int i = (int)(player.Center.X / 16) + Main.rand.Next(-radius, radius + 1);
+            int j = (int)(player.Center.Y / 16) + Main.rand.Next(-radius, radius + 1);
+
+            if (Main.tile[i, j].TileType == TileID.Lead || Main.tile[i, j].TileType == TileID.Iron)
             {
-                const int radius = 15;
+                Main.tile[i, j].Get<TileTypeData>().Type = TileID.Gold;
+                WorldGen.SquareTileFrame(i, j);
+                NetMessage.SendTileSquare(Main.myPlayer, i, j, 1, 1, TileChangeType.None);
+            }
 
-                int i = (int)(player.Center.X / 16) + Main.rand.Next(-radius, radius + 1);
-                int j = (int)(player.Center.Y / 16) + Main.rand.Next(-radius, radius + 1);
-
-                if (Main.tile[i, j].TileType == TileID.Lead || Main.tile[i, j].TileType == TileID.Iron)
-                {
-                    Main.tile[i, j].Get<TileTypeData>().Type = TileID.Gold;
-                    WorldGen.SquareTileFrame(i, j);
-                    NetMessage.SendTileSquare(Main.myPlayer, i, j, 1, 1, TileChangeType.None);
-                }
+            if (Main.tile[i, j].TileType == TileID.MetalBars && (Main.tile[i, j].TileFrameX == 18 * 2 || Main.tile[i, j].TileFrameX == 18 * 3))
+            {
+                Main.tile[i, j].Get<TileWallWireStateData>().TileFrameX = 18 * 6;
+                WorldGen.SquareTileFrame(i, j);
+                NetMessage.SendTileSquare(Main.myPlayer, i, j, 1, 1, TileChangeType.None);
             }
         }
     }
@@ -821,8 +848,8 @@ namespace ChaosEdition
 
         public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo)
         {
-            drawInfo.rotation = (Main.GameUpdateCount * 0.1f);
-            drawInfo.rotationOrigin = (drawInfo.drawPlayer.Size / 2) + new Vector2((float)Math.Sin((Main.GameUpdateCount * 0.033f)) * 10, (float)Math.Sin(Main.GameUpdateCount * 0.0225f) * 10);
+            drawInfo.rotation = (Main.GameUpdateCount * 0.1f) + (drawInfo.drawPlayer.whoAmI * 1.33333f);
+            drawInfo.rotationOrigin = (drawInfo.drawPlayer.Size / 2) + new Vector2((float)Math.Sin((Main.GameUpdateCount * 0.033f)) * 10 + drawInfo.drawPlayer.whoAmI, (float)Math.Sin(Main.GameUpdateCount * 0.0225f) * 10 + (drawInfo.drawPlayer.whoAmI * 2.33333f));
         }
     }
     #endregion

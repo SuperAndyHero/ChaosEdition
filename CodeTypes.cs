@@ -124,6 +124,8 @@ namespace ChaosEdition
         public virtual void PostDraw(NPC npc, SpriteBatch sb, Color drawColor, ModNPC modNpc = null) { }
         public virtual bool PreAI(NPC npc, ModNPC modNpc = null) { return true; }
         public virtual void AI(NPC npc, ModNPC modNpc = null) { }
+        public virtual void OnKill(NPC npc) { }
+        public virtual void HitEffect(NPC npc, NPC.HitInfo hit) { }
     }
 
     //done

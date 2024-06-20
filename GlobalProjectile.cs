@@ -45,7 +45,7 @@ namespace ChaosEdition
             foreach (ProjectileCode code in ChaosEdition.ActiveProjectileCodes)
                 code.PostDraw(projectile, lightColor);
         }
-        public override void Kill(Projectile projectile, int timeLeft)
+        public override void OnKill(Projectile projectile, int timeLeft)
         {
             foreach (ProjectileCode code in ChaosEdition.ActiveProjectileCodes)
                 code.OnKill(projectile, timeLeft);

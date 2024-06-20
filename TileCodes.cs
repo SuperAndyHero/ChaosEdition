@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
+using Terraria.ModLoader;
 
 namespace ChaosEdition
 {
@@ -93,7 +94,7 @@ namespace ChaosEdition
         public override int NextExtraDelaySeconds => -5;
         public override void NearbyEffects(int i, int j, int type, bool closer)
         {
-            if (Main.netMode == NetmodeID.MultiplayerClient)//serverside
+            if (Main.netMode == NetmodeID.Server)
                 return;
 
             if (Main.rand.NextBool(50000))
@@ -103,6 +104,86 @@ namespace ChaosEdition
                     WorldGen.PlaceTile(i, j - 1, TileID.Torches, true, false, Main.myPlayer, (Main.rand.NextBool(200) ? 14 : (Main.rand.NextBool(10) ? 12 : 0)));
                     NetMessage.SendTileSquare(Main.myPlayer, i, j, 1, 1, TileChangeType.None);
                 }
+            }
+        }
+    }
+
+    public class WormsFromDirt : TileCode
+    {
+
+        public override int MaxLengthSeconds => 60;
+        public override int MinLengthSeconds => 30;
+
+        public override int NextExtraDelaySeconds => -10;
+        public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
+        {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
+
+            if ((type == TileID.Dirt || type == TileID.Mud || type == TileID.Grass || type == TileID.JungleGrass) && Main.rand.NextBool(2))
+            {
+                Vector2 pos = new Vector2((i * 16) + 8, j * 16);
+                Vector2 playerPos = HelperMethods.NearestPlayerCenter(pos);
+
+                if(pos.Distance(playerPos) < 1000)
+                {
+                    bool nightcrawller = Main.rand.NextBool(100) && !Main.dayTime;
+                    bool gold = Main.rand.NextBool(1000);
+                    NPC.NewNPC(NPC.GetSource_NaturalSpawn(), (int)pos.X, (int)pos.Y, gold ? NPCID.GoldWorm : nightcrawller ? NPCID.EnchantedNightcrawler : NPCID.Worm);
+                }
+
+            }
+        }
+    }
+
+    public class SkeletonsFromGraves : TileCode
+    {
+
+        public override int MaxLengthSeconds => 120;
+        public override int MinLengthSeconds => 45;
+
+        public override int NextExtraDelaySeconds => -15;
+        public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
+        {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
+
+            if (type == TileID.Tombstones && Main.tile[i, j].TileFrameX % 36 == 0 && Main.tile[i, j].TileFrameY == 0 && fail == false)
+            {
+                Vector2 pos = new Vector2((i * 16) + 8, (j * 16) - 16);
+                Vector2 playerPos = HelperMethods.NearestPlayerCenter(pos);
+
+                if (pos.Distance(playerPos) < 1000)
+                {
+                    NPC.NewNPC(NPC.GetSource_NaturalSpawn(), (int)pos.X, (int)pos.Y, NPCID.Skeleton);
+                }
+
+            }
+        }
+    }
+
+    public class GraveRobbery : TileCode
+    {
+
+        public override int MaxLengthSeconds => 45;
+        public override int MinLengthSeconds => 25;
+
+        public override int NextExtraDelaySeconds => -5;
+        public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
+        {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
+
+            if (type == TileID.Tombstones && Main.tile[i, j].TileFrameX % 36 == 0 && Main.tile[i, j].TileFrameY == 0 && fail == false)
+            {
+                Vector2 pos = new Vector2((i * 16) + 8, (j * 16) + 8);
+                Vector2 playerPos = HelperMethods.NearestPlayerCenter(pos);
+
+                if (pos.Distance(playerPos) < 1000)
+                {
+                    Item.NewItem(Item.GetSource_None(), pos, ItemID.SilverCoin, Main.rand.Next(25, 200));
+                }
+
             }
         }
     }
