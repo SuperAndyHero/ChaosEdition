@@ -14,6 +14,9 @@ using static ChaosEdition.ChaosEdition;
 using System.IO;
 using Terraria.Graphics.CameraModifiers;
 using System.Reflection;
+using Terraria.Utilities;
+using static ChaosEdition.Code;
+using System.Diagnostics;
 
 namespace ChaosEdition
 {
@@ -45,13 +48,30 @@ namespace ChaosEdition
         public static TimeSpan RetryCodeDelay => new TimeSpan(0, 0, Math.Max(1, (int)(ConfigDelayBetweenCodes * 0.6666f)));//added to extra delay if this fails to select a code
         #endregion
 
-        //public static List<List<Code>> ab = new List<List<Code>>();
-        public static Dictionary<Type, int> CodeTypeID = new Dictionary<Type, int>();
-        public static Dictionary<Type, bool> ActiveEffects = new Dictionary<Type, bool>();//a bool for every type to quickly check if an effect is active
-        //public static Dictionary<Type, Code> ActiveEffectInstance = new Dictionary<Type, Code>();
-        public static Type[] CodeTypes;//an array of every type
-        public static bool IsModLoaded = false;
 
+        //public static List<List<Code>> ab = new List<List<Code>>();
+        //these could be <Type, Class> but there isnt enough to need to store
+        //public static Dictionary<Type, int> CodeTypeID = new Dictionary<Type, int>();
+        //public static Dictionary<Type, CodeFlags> CodeTypeFlags = new Dictionary<Type, CodeFlags>();
+
+        //public static Dictionary<Type, bool> RunningEffects = new Dictionary<Type, bool>();//a bool for every type to quickly check if an effect is active
+        //public static Dictionary<Type, bool> EffectCanBeSelected = new Dictionary<Type, bool>();//if a effect is in the pool
+        //public static Dictionary<Type, float> EffectWeight = new Dictionary<Type, float>();//chance to be selected
+        //public static Dictionary<Type, Code> ActiveEffectInstance = new Dictionary<Type, Code>();
+        public static Type[] AllCodeTypes;//only used for netcode to get a type from ID
+
+        public static Dictionary<Type, CodeData> CodeInfo = new();
+
+        public class CodeData(int ID, CodeFlags Flags, float SelectionWeight, bool CanBeSelected)
+        {
+            public bool Running;
+            public bool CanBeSelected = CanBeSelected;
+            public readonly int ID = ID;
+            public readonly CodeFlags Flags = Flags;
+            public readonly float SelectionWeight = SelectionWeight;
+        }
+
+        public static bool IsModLoaded = false;
         //todo: see about replacing the second delay on codes with a float delay
         public const int DefaultDelayBetweenCodes = 25;
         public static float TimeDelayScale => (float)ConfigDelayBetweenCodes / (float)DefaultDelayBetweenCodes;
@@ -70,12 +90,15 @@ namespace ChaosEdition
         //serverside
         public static bool ConfigAutoSelectingCodes = true;//disable for testing
         public static int ConfigMaxActiveCodes = 10;
+
+        public static bool ConfigCheatyCodes = false;
+        public static bool ConfigDestructiveCodes = false;
         #endregion
 
         #region TEMP BOOLS FOR CODES (todo: make this a generated list)
-        public static bool DirtRodEffectActive = true;
-        public static bool RandomItemFiresaleActive = true;
-        public static bool HugeItemActive = true;
+        //public static bool DirtRodEffectActive = true;
+        //public static bool RandomItemFiresaleActive = true;
+        //public static bool HugeItemActive = true;
         #endregion
 
         //todo: split this into another mod, make swaps determainistic, make it possible to undo swaps, call it terraria corruptor or something
@@ -93,11 +116,25 @@ namespace ChaosEdition
             int arrID = 0;
             foreach (Type type in arr)
             {
-                CodeTypeID.Add(type, arrID);
-                ActiveEffects.Add(type, false);
+                Code tempcode = (Code)Activator.CreateInstance(type);
+                CodeData data = new(
+                        arrID, 
+                        tempcode.Flags, 
+                        tempcode.SelectionWeight, 
+                        tempcode.EnabledByDefault);
+
+                //from before codedata
+                //CodeTypeID.Add(type, arrID);
+                //CodeFlags flags = GetEnumFlags(type);
+                //CodeTypeFlags.Add(type, flags);
+                //RunningEffects.Add(type, false);
+
+                CodeInfo.Add(type, data);
                 arrID++;
             }
-            CodeTypes = arr.ToArray();
+            AllCodeTypes = arr.ToArray();
+
+            RebuildWeightedRandom();
 
             CameraModifier = new();
 
@@ -136,6 +173,17 @@ namespace ChaosEdition
             }
             //Main.spriteBatch.End();
         }
+
+        //public static CodeFlags GetEnumFlags(Type codetype)
+        //{
+        //    CodeFlags flags = CodeFlags.None;
+
+        //    IEnumerable<FlagAttribute> attributeflags = codetype.GetCustomAttributes<FlagAttribute>();
+        //    foreach (FlagAttribute attribute in attributeflags)
+        //        flags |= attribute.Flag;
+
+        //    return flags;
+        //}
 
         public static void ClearAllCodes()
         {
@@ -334,6 +382,247 @@ namespace ChaosEdition
                 }
             }
         }
+
+        //set of attibutes to go along with these, they are used since code instances are only made when they are active
+        //wanting to avoid making a instance just to check
+        //[Flags]
+        //public enum CodeFlags
+        //{
+        //    None = 0, //All codes have this flag
+        //    Cheaty = 1, //Duping item codes, high damage increases
+        //    Destructive = 2, //potenially breaks builds, destructive codes
+        //    //etc = 4, etc = 8,
+        //}
+
+        //type for now, can change to something with more info later
+        public static WeightedRandom<Type> WeightedRandom = new WeightedRandom<Type>();
+
+        public static void RebuildWeightedRandom()
+        {
+            WeightedRandom = new WeightedRandom<Type>();
+            foreach (KeyValuePair<Type, CodeData> pair in CodeInfo)
+            {
+                if (pair.Value.CanBeSelected)
+                {
+                    if (pair.Value.Flags.HasFlag(CodeFlags.Cheaty))
+                        if (!ConfigCheatyCodes)
+                            continue;
+
+                    if (pair.Value.Flags.HasFlag(CodeFlags.Destructive))
+                        if (!ConfigDestructiveCodes)
+                            continue;
+
+                    if (pair.Value.Flags.HasFlag(CodeFlags.SingleplayerOnly))
+                        if (Main.netMode != NetmodeID.SinglePlayer)
+                            continue;
+
+                    WeightedRandom.Add(pair.Key, pair.Value.SelectionWeight);
+                }
+            }
+        }
+    }
+
+    //Methods only. Code selection, etc
+    public class ChaosEditionSystem : ModSystem
+    {
+        //TODO find better hook, does not run on server
+
+        //updates and removes codes, also selects codes if timer is up
+        public override void PostUpdateEverything()//only called in-world
+        {
+            if (Main.netMode == NetmodeID.Server)
+                UpdateCodes();
+        }
+
+        public override void PostUpdateInput()//gets called all the time (only in singleplayer)
+        {
+            if(Main.netMode != NetmodeID.Server) //will never be called anyway on server, here just to be safe
+                UpdateCodes();
+        }
+
+        public void UpdateCodes()
+        {
+            #region check actives
+            foreach (MenuCode code in ActiveMenuCodes)
+                code.CheckActive();
+
+            foreach (NpcCode code in ActiveNpcCodes)
+                code.CheckActive();
+
+            foreach (PlayerCode code in ActivePlayerCodes)
+                code.CheckActive();
+
+            foreach (TileCode code in ActiveTileCodes)
+                code.CheckActive();
+
+            foreach (ItemCode code in ActiveItemCodes)
+                code.CheckActive();
+
+            foreach (ProjectileCode code in ActiveProjectileCodes)
+                code.CheckActive();
+
+            foreach (MiscCode code in ActiveMiscCodes)
+                code.CheckActive();
+            #endregion
+
+
+            while (RemovalQueue.Any())
+            {
+                var pair = RemovalQueue.Dequeue();
+                pair.ListToRemoveFrom.Remove(pair.CodeToRemove);
+            }
+
+            if (Main.netMode != NetmodeID.MultiplayerClient)//server handles this
+            {
+                //select random code
+                if (ConfigAutoSelectingCodes && ActiveCodeCount < ConfigMaxActiveCodes && TimeSpanUntilNext.TotalSeconds <= 0 && IsModLoaded)
+                {
+                    CurrentExtraDelay = new TimeSpan();
+
+                    int tries = 0;
+
+                    const int maxTries = 10;
+                    while (tries < maxTries)
+                    {
+                        Type type = ChaosEdition.WeightedRandom.Get();
+                        if (!CodeInfo[type].Running)
+                        {
+                            Activator.CreateInstance(type);//this is synced in it's ctor
+                            return;
+                        }
+                        else//if code type has already been selected try again
+                            tries++;
+
+                        if (tries >= maxTries)//if reached max tries
+                        {
+                            TimeLastCodeSelected = DateTime.Now.Subtract(NewCodeDelay);//removes code delay since nothing was selected (?) //.Subtract(CodeDelay).Add(RetryCodeDelay);
+                            CurrentExtraDelay += RetryCodeDelay;//adds the shorter retry delay
+
+                            if (Main.netMode == NetmodeID.Server)//send these values to MP clients
+                            {
+                                ModPacket modpacket = ModContent.GetInstance<ChaosEdition>().GetPacket();
+                                modpacket.WriteTime((int)NewCodeDelay.TotalSeconds, false);//sends time since it gets changed in this case
+                                modpacket.Send();
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+
+
+            foreach (MiscCode code in ActiveMiscCodes)
+                code.Update();
+        }
+
+        public override void OnWorldLoad()
+        {
+            RebuildWeightedRandom();//to make sure singleplayer only codes are removed
+
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                //Main.NewText("client as just connected to game");
+                ChaosEdition.ClearAllCodes();
+
+                ModPacket modpacket = ModContent.GetInstance<ChaosEdition>().GetPacket();
+                modpacket.WriteRequestAllCodes();//request active codes, also sends time
+                modpacket.Send();
+            }
+        }
+
+
+        //hook for codes that modify interface layers
+        public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
+        {
+            //ChaosEdition.ClearSwappedMethods();
+            foreach (MenuCode code in ActiveMenuCodes)
+                code.ModifyInterfaceLayers(layers);
+        }
+
+        //countdown timer and debug active codes list
+        public override void PostDrawInterface(SpriteBatch spriteBatch)
+        {
+            foreach (MenuCode code in ActiveMenuCodes)
+                code.PostDrawInterface(spriteBatch);
+
+            foreach (MiscCode code in ActiveMiscCodes)
+                code.Draw(spriteBatch);
+
+            //todo find a better position, better offsets, maybe support for ui scale
+            //Utils.DrawBorderString(spriteBatch, "Time since last: " + LastCodeSelectedTime.ToShortTimeString(), new Vector2(5, 15), Color.White * 0.75f);
+            if(ConfigDrawCountdownTimer)
+                Utils.DrawBorderString(spriteBatch, "Time till next: " + Math.Max(0, (int)TimeSpanUntilNext.TotalSeconds), new Vector2(10, 70), Color.White * 0.75f);
+
+            if (ConfigDrawActiveCodes || ConfigDrawFullCodeList || ConfigDrawActiveCodeCount)
+            {
+                int count = 0;
+                int allCount = 0;
+
+                if (ConfigDrawFullCodeList)
+                {
+                    foreach (KeyValuePair<Type, CodeData> pair in CodeInfo)
+                    {
+                        Color color = pair.Value.Running ? new Color(100, 255, 100) : (allCount % 2 == 0 ? Color.Tomato : Color.CornflowerBlue);
+                        Utils.DrawBorderString(spriteBatch, pair.Key.Name + " : " + pair.Value, new Vector2(5, 45 + (15 * allCount)), color);
+                        allCount++;
+                    }
+                }
+                else if (ConfigDrawActiveCodes || ConfigDrawActiveCodeCount)
+                {
+
+                    void drawcode(Code code)
+                    {
+                        Type type = code.GetType();
+                        bool active = CodeInfo[type].Running;
+
+                        if (active)
+                        {
+                            if (ConfigDrawActiveCodes)
+                                Utils.DrawBorderString(spriteBatch, type.Name + " " + (int)(code.TimeActiveSpan - DateTime.Now.Subtract(code.TimeCreatedAt)).TotalSeconds, new Vector2(10, 110 + (15 * count)), new Color(100, 255, 100));
+
+                            count++;
+                        }
+                    }
+
+                    foreach (Code code in ActiveMenuCodes)
+                        drawcode(code);
+                    foreach (Code code in ActiveNpcCodes)
+                        drawcode(code);
+                    foreach (Code code in ActivePlayerCodes)
+                        drawcode(code);
+                    foreach (Code code in ActiveTileCodes)
+                        drawcode(code);
+                    foreach (Code code in ActiveItemCodes)
+                        drawcode(code);
+                    foreach (Code code in ActiveProjectileCodes)
+                        drawcode(code);
+                    foreach (Code code in ActiveMiscCodes)
+                        drawcode(code);
+
+                    if (ConfigDrawActiveCodeCount)
+                        Utils.DrawBorderString(spriteBatch, "Count: " + count, new Vector2(10, ConfigDrawCountdownTimer ? 90 : 60), Color.White * 0.75f);
+                }
+            }
+        }
+
+        public override void ModifyScreenPosition()
+        {
+            Main.instance.CameraModifiers.Add(ChaosEdition.CameraModifier);
+        }
+    }
+
+    public class CameraModifier : ICameraModifier
+    {
+
+        public string UniqueIdentity => "Chaos Edition General";
+
+        public bool Finished => false;
+
+        public void Update(ref CameraInfo cameraPosition)
+        {
+            foreach (MiscCode code in ActiveMiscCodes)
+                code.UpdateCamera(ref cameraPosition);
+        }
     }
 
     public static class ModPacketHelper
@@ -348,7 +637,7 @@ namespace ChaosEdition
                 if (codeTypeID == -1)//this means end of code list
                     break;
 
-                Type type = CodeTypes[codeTypeID];
+                Type type = AllCodeTypes[codeTypeID];
 
                 Code code = (Code)Activator.CreateInstance(type);
                 code.TimeActiveSpan = new TimeSpan(0, 0, reader.Read7BitEncodedInt());
@@ -391,7 +680,7 @@ namespace ChaosEdition
         public static void ReadNewCode(this BinaryReader reader)//may need a continiue option for sending multiple at once?
         {
             int codeTypeID = reader.Read7BitEncodedInt();
-            Type type = CodeTypes[codeTypeID];
+            Type type = AllCodeTypes[codeTypeID];
             Code code = (Code)Activator.CreateInstance(type);
             code.TimeActiveSpan = new TimeSpan(0, 0, reader.Read7BitEncodedInt());
 
@@ -444,9 +733,9 @@ namespace ChaosEdition
             void SyncCode(Code code)
             {
                 Type type = code.GetType();
-                if (ActiveEffects[type])
+                if (CodeInfo[type].Running)
                 {
-                    modpacket.Write7BitEncodedInt(ChaosEdition.CodeTypeID[type]);
+                    modpacket.Write7BitEncodedInt(ChaosEdition.CodeInfo[type].ID);
                     modpacket.Write7BitEncodedInt((int)code.TimeActiveSpan.TotalSeconds);
 
                     IEnumerable<FieldInfo> infos = type.GetFields().Where(info =>
@@ -501,7 +790,7 @@ namespace ChaosEdition
             Type type = code.GetType();
 
             modpacket.Write7BitEncodedInt((int)PacketType.NewCode);//creation of code
-            modpacket.Write7BitEncodedInt(ChaosEdition.CodeTypeID[type]);
+            modpacket.Write7BitEncodedInt(ChaosEdition.CodeInfo[type].ID);
             modpacket.Write7BitEncodedInt((int)TimeActiveSpan.TotalSeconds);
 
             IEnumerable<FieldInfo> infos = type.GetFields().Where(info =>
@@ -512,202 +801,6 @@ namespace ChaosEdition
             {
                 modpacket.WriteDynamic(info.GetValue(code));
             }
-        }
-    }
-
-    //Code selection
-    public class ChaosEditionSystem : ModSystem
-    {
-        //TODO find better hook, does not run on server
-
-        //updates and removes codes, also selects codes if timer is up
-        public override void PostUpdateEverything()//only called in-world
-        {
-            if (Main.netMode == NetmodeID.Server)
-                UpdateCodes();
-        }
-
-        public override void PostUpdateInput()//gets called all the time (only in singleplayer)
-        {
-            if(Main.netMode != NetmodeID.Server) //will never be called anyway on server, here just to be safe
-                UpdateCodes();
-        }
-
-        public void UpdateCodes()
-        {
-            foreach (MenuCode code in ActiveMenuCodes)
-                code.CheckActive();
-
-            foreach (NpcCode code in ActiveNpcCodes)
-                code.CheckActive();
-
-            foreach (PlayerCode code in ActivePlayerCodes)
-                code.CheckActive();
-
-            foreach (TileCode code in ActiveTileCodes)
-                code.CheckActive();
-
-            foreach (ItemCode code in ActiveItemCodes)
-                code.CheckActive();
-
-            foreach (ProjectileCode code in ActiveProjectileCodes)
-                code.CheckActive();
-
-            foreach (MiscCode code in ActiveMiscCodes)
-                code.CheckActive();
-
-
-            while (RemovalQueue.Any())
-            {
-                var pair = RemovalQueue.Dequeue();
-                pair.ListToRemoveFrom.Remove(pair.CodeToRemove);
-            }
-
-            if (Main.netMode != NetmodeID.MultiplayerClient)//server handles this
-            {
-                if (ConfigAutoSelectingCodes && ActiveCodeCount < ConfigMaxActiveCodes && TimeSpanUntilNext.TotalSeconds <= 0 && IsModLoaded)
-                {
-                    CurrentExtraDelay = new TimeSpan();
-
-                    int tries = 0;
-                    const int maxTries = 5;
-                    while (tries < maxTries)
-                    {
-                        int index = Main.rand.Next(CodeTypes.Length);
-                        if (!ActiveEffects[CodeTypes[index]])
-                        {
-                            Activator.CreateInstance(CodeTypes[index]);//this is synced in it's ctor
-                            return;
-                        }
-                        else//if code type has already been selected try again
-                            tries++;
-                        if (tries >= maxTries)//if reached max tries
-                        {
-                            TimeLastCodeSelected = DateTime.Now.Subtract(NewCodeDelay);//removes code delay since nothing was selected (?) //.Subtract(CodeDelay).Add(RetryCodeDelay);
-                            CurrentExtraDelay += RetryCodeDelay;//adds the shorter retry delay
-
-                            if (Main.netMode == NetmodeID.Server)//send these values to MP clients
-                            {
-                                ModPacket modpacket = ModContent.GetInstance<ChaosEdition>().GetPacket();
-                                modpacket.WriteTime((int)NewCodeDelay.TotalSeconds, false);//sends time since it gets changed in this case
-                                modpacket.Send();
-                            }
-                            return;
-                        }
-                    }
-                }
-            }
-
-
-            foreach (MiscCode code in ActiveMiscCodes)
-                code.Update();
-        }
-
-        public override void OnWorldLoad()
-        {
-            if(Main.netMode == NetmodeID.MultiplayerClient)
-            {
-                //Main.NewText("client as just connected to game");
-                ChaosEdition.ClearAllCodes();
-
-                ModPacket modpacket = ModContent.GetInstance<ChaosEdition>().GetPacket();
-                modpacket.WriteRequestAllCodes();//request active codes, also sends time
-                modpacket.Send();
-            }
-        }
-
-
-        //hook for codes that modify interface layers
-        public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
-        {
-            //ChaosEdition.ClearSwappedMethods();
-            foreach (MenuCode code in ActiveMenuCodes)
-                code.ModifyInterfaceLayers(layers);
-        }
-
-        //countdown timer and debug active codes list
-        public override void PostDrawInterface(SpriteBatch spriteBatch)
-        {
-            foreach (MenuCode code in ActiveMenuCodes)
-                code.PostDrawInterface(spriteBatch);
-
-            foreach (MiscCode code in ActiveMiscCodes)
-                code.Draw(spriteBatch);
-
-            //todo find a better position, better offsets, maybe support for ui scale
-            //Utils.DrawBorderString(spriteBatch, "Time since last: " + LastCodeSelectedTime.ToShortTimeString(), new Vector2(5, 15), Color.White * 0.75f);
-            if(ConfigDrawCountdownTimer)
-                Utils.DrawBorderString(spriteBatch, "Time till next: " + Math.Max(0, (int)TimeSpanUntilNext.TotalSeconds), new Vector2(10, 70), Color.White * 0.75f);
-
-            if (ConfigDrawActiveCodes || ConfigDrawFullCodeList || ConfigDrawActiveCodeCount)
-            {
-                int count = 0;
-                int allCount = 0;
-
-                if (ConfigDrawFullCodeList)
-                {
-                    foreach (KeyValuePair<Type, bool> pair in ActiveEffects)
-                    {
-                        Color color = pair.Value ? new Color(100, 255, 100) : (allCount % 2 == 0 ? Color.Tomato : Color.CornflowerBlue);
-                        Utils.DrawBorderString(spriteBatch, pair.Key.Name + " : " + pair.Value, new Vector2(5, 45 + (15 * allCount)), color);
-                        allCount++;
-                    }
-                }
-                else if (ConfigDrawActiveCodes || ConfigDrawActiveCodeCount)
-                {
-
-                    void drawcode(Code code)
-                    {
-                        Type type = code.GetType();
-                        bool active = ActiveEffects[type];
-
-                        if (active)
-                        {
-                            if (ConfigDrawActiveCodes)
-                                Utils.DrawBorderString(spriteBatch, type.Name + " " + (int)(code.TimeActiveSpan - DateTime.Now.Subtract(code.TimeCreatedAt)).TotalSeconds, new Vector2(10, 110 + (15 * count)), new Color(100, 255, 100));
-
-                            count++;
-                        }
-                    }
-
-                    foreach (Code code in ActiveMenuCodes)
-                        drawcode(code);
-                    foreach (Code code in ActiveNpcCodes)
-                        drawcode(code);
-                    foreach (Code code in ActivePlayerCodes)
-                        drawcode(code);
-                    foreach (Code code in ActiveTileCodes)
-                        drawcode(code);
-                    foreach (Code code in ActiveItemCodes)
-                        drawcode(code);
-                    foreach (Code code in ActiveProjectileCodes)
-                        drawcode(code);
-                    foreach (Code code in ActiveMiscCodes)
-                        drawcode(code);
-
-                    if (ConfigDrawActiveCodeCount)
-                        Utils.DrawBorderString(spriteBatch, "Count: " + count, new Vector2(10, ConfigDrawCountdownTimer ? 90 : 60), Color.White * 0.75f);
-                }
-            }
-        }
-
-        public override void ModifyScreenPosition()
-        {
-            Main.instance.CameraModifiers.Add(ChaosEdition.CameraModifier);
-        }
-    }
-
-    public class CameraModifier : ICameraModifier
-    {
-
-        public string UniqueIdentity => "Chaos Edition General";
-
-        public bool Finished => false;
-
-        public void Update(ref CameraInfo cameraPosition)
-        {
-            foreach (MiscCode code in ActiveMiscCodes)
-                code.UpdateCamera(ref cameraPosition);
         }
     }
 }

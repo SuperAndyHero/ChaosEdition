@@ -10,6 +10,7 @@ using Terraria.GameContent;
 
 namespace ChaosEdition
 {
+    //TODO: reset item colors at the end
     public class ItemColors : ItemCode 
     {
         public override int MaxLengthSeconds => 120;
@@ -36,18 +37,20 @@ namespace ChaosEdition
             if (item.color != Color.Transparent)
                 item.color = new Color(item.color.R + r, item.color.G + g, item.color.B + b);
             else
-                item.color = Color.White;
+                item.color = Color.White;//not sure why not transparent
         }
     }
 
-    public class SmallItems : ItemCode
+    public class ItemsResized : ItemCode
     {
         public override int MaxLengthSeconds => 120;
 
         public override int NextExtraDelaySeconds => -10;
 
+        public override float SelectionWeight => 0.93f;
+
         [NetSync]
-        public float itemscale = Main.rand.NextFloat(0.33f, 0.9f);
+        public float itemscale = Main.rand.NextFloat(0.33f, 1.66f);
 
         public override bool PreDrawInInventory(Item item, SpriteBatch spriteBatch, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
         {

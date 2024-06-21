@@ -19,24 +19,45 @@ using Terraria.Graphics.CameraModifiers;
 
 namespace ChaosEdition
 {
+    //Note: Effects are called codes since this is what they are often refered to by people who play mario 64 chaos edition-
+    //-the name comes from people refering to effects as a gameshark code. I use bot hcode and effect interchangeably
     public abstract class Code
     {
         public DateTime TimeCreatedAt = DateTime.Now;
         public TimeSpan TimeActiveSpan;
 
+        [Flags]
+        public enum CodeFlags
+        {
+            None = 0, //All codes have this flag
+            Cheaty = 1, //Duping item codes, high damage increases
+            Destructive = 2, //potenially breaks builds, destructive codes
+            //etc = 4, etc = 8,
+            SingleplayerOnly = 64,
+        }
+
         //todo: this may need to store a seed from the server, that way nothing should need to be synced after creation
+        //not sure if above comment is still needed, since this can be done with currenr sync system
 
         public virtual int MaxLengthSeconds => 40;//this gets scaled based on adjusted time delay, this could be replaced by a float where default delay = 1.0
         public virtual int MinLengthSeconds => (int)(MaxLengthSeconds * 0.5f);
         public virtual int NextExtraDelaySeconds => 0;
         public abstract List<Code> ContainingList { get; }
 
-        protected Dictionary<Type, bool> EffectBools => ChaosEdition.ActiveEffects;
+        public virtual CodeFlags Flags => CodeFlags.None;
+        public virtual float SelectionWeight => 1;
+        public virtual bool EnabledByDefault => true;
+
+        protected Dictionary<Type, CodeData> EffectInfo => ChaosEdition.CodeInfo;
 
         public Code()
         {
+            //originally a param but activator was being a pain and not finding it
+            if (!ChaosEdition.IsModLoaded)//if this is being initalized to get its values
+                return;
+
             //Type type = GetType();
-            if (!EffectBools[GetType()])
+            if (!EffectInfo[GetType()].Running)
             {
                 if (Main.netMode != NetmodeID.MultiplayerClient)//server sends these values beforehand(or singleplayer)
                 {
@@ -59,12 +80,13 @@ namespace ChaosEdition
                     modpacket.Send();
                 }
 
-                else if(Main.LocalPlayer.inventory[9].type == ItemID.Gel)//debug
-                {
-                    Main.NewText(GetType().Name);
-                }
+                //no longer needed since there is a config for a ui
+                //else if(Main.LocalPlayer.inventory[9].type == ItemID.Gel)//debug
+                //{
+                //    Main.NewText(GetType().Name);
+                //}
 
-                EffectBools[GetType()] = true;
+                EffectInfo[GetType()].Running = true;
                 ContainingList.Add(this);
             }
         }
@@ -73,7 +95,7 @@ namespace ChaosEdition
 
         public void Remove()
         {
-            EffectBools[GetType()] = false;
+            EffectInfo[GetType()].Running = false;
             RemovalQueue.Enqueue((this, ContainingList));
             //if ((ContainingList).Contains(this))
             //    ContainingList.Remove(this);
@@ -90,6 +112,7 @@ namespace ChaosEdition
             return false;
         }
 
+        //unsure what this did, or if it was before the current sync system
         //internal void SyncValue(ref dynamic value)
         //{
         //    if (Main.netMode == NetmodeID.Server)
@@ -126,6 +149,8 @@ namespace ChaosEdition
         public virtual void AI(NPC npc, ModNPC modNpc = null) { }
         public virtual void OnKill(NPC npc) { }
         public virtual void HitEffect(NPC npc, NPC.HitInfo hit) { }
+        public virtual void ModifyHitPlayer(NPC npc, Player target, ref Player.HurtModifiers modifiers) { }
+
     }
 
     //done

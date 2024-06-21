@@ -53,11 +53,15 @@ namespace ChaosEdition
             foreach (NpcCode code in ChaosEdition.ActiveNpcCodes)
                 code.OnKill(npc);
         }
-
         public override void HitEffect(NPC npc, NPC.HitInfo hit)
         {
             foreach (NpcCode code in ChaosEdition.ActiveNpcCodes)
                 code.HitEffect(npc, hit);
+        }
+        public override void ModifyHitPlayer(NPC npc, Player target, ref Player.HurtModifiers modifiers)
+        {
+            foreach (NpcCode code in ChaosEdition.ActiveNpcCodes)
+                code.ModifyHitPlayer(npc, target, ref modifiers);
         }
     }
 }

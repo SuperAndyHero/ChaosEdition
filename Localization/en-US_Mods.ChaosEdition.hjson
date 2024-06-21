@@ -68,5 +68,15 @@ Configs: {
 			Label: Enable Dirt Rod Effect
 			Tooltip: ""
 		}
+
+		EnableFireSale: {
+			Label: Enable Fire Sale
+			Tooltip: ""
+		}
+
+		EnableHugeItem: {
+			Label: Enable Huge Item
+			Tooltip: ""
+		}
 	}
 }

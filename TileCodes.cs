@@ -12,52 +12,55 @@ using Terraria.ModLoader;
 
 namespace ChaosEdition
 {
-    public class RandomColors : TileCode
-    {
-        [NetSync]
-        public float a = Main.rand.NextFloat(-3f, 3f);
-        [NetSync]
-        public float b = Main.rand.NextFloat(-3f, 3f);
-        [NetSync]
-        public float c = Main.rand.NextFloat(-3f, 3f);
+    //broken by update
+    //public class RandomColors : TileCode
+    //{
+    //    [NetSync]
+    //    public float a = Main.rand.NextFloat(-3f, 3f);
+    //    [NetSync]
+    //    public float b = Main.rand.NextFloat(-3f, 3f);
+    //    [NetSync]
+    //    public float c = Main.rand.NextFloat(-3f, 3f);
 
-        public override int MaxLengthSeconds => 90;
+    //    public override int MaxLengthSeconds => 90;
 
-        public override int NextExtraDelaySeconds => -15;
-        public override void DrawEffects(int i, int j, int type, SpriteBatch spriteBatch, ref TileDrawInfo drawData)
-        {
-            //Main.GameUpdateCount is different for each client, but it doesn't matter
-            drawData.colorTint = new Color(
-                (float)(Math.Sin(i + Main.GameUpdateCount * 0.02f * a) + 1) * 0.5f,
-                (float)(Math.Sin(j + i + -Main.GameUpdateCount * 0.03f * b) + 1) * 0.5f,
-                (float)(Math.Sin((i * j) + Main.GameUpdateCount * 0.02f * c) + 1) * 0.5f);
-        }
-    }
+    //    public override int NextExtraDelaySeconds => -15;
+    //    public override void DrawEffects(int i, int j, int type, SpriteBatch spriteBatch, ref TileDrawInfo drawData)
+    //    {
+    //        //Main.GameUpdateCount is different for each client, but it doesn't matter
+    //        drawData.colorTint = new Color(
+    //            (float)(Math.Sin(i + Main.GameUpdateCount * 0.02f * a) + 1) * 0.5f,
+    //            (float)(Math.Sin(j + i + -Main.GameUpdateCount * 0.03f * b) + 1) * 0.5f,
+    //            (float)(Math.Sin((i * j) + Main.GameUpdateCount * 0.02f * c) + 1) * 0.5f);
+    //    }
+    //}
+    
+    //broken by update
+    //public class ScollingColors : TileCode
+    //{
+    //    public override int MaxLengthSeconds => 95;
+    //    public override int NextExtraDelaySeconds => -12;
+    //    public override void DrawEffects(int i, int j, int type, SpriteBatch spriteBatch, ref TileDrawInfo drawData)
+    //    {
+    //        drawData.colorTint = new Color(
+    //            (float)(Math.Sin(i * j * 0.15f) + 1) * 0.5f, 
+    //            (float)(Math.Cos(i + j * j * 0.855f) + 1) * 0.5f, 
+    //            (float)(Math.Sin((j ^ i) * 0.21f) + 1) * 0.5f);
+    //    }
+    //}
 
-    public class ScollingColors : TileCode
-    {
-        public override int MaxLengthSeconds => 95;
-        public override int NextExtraDelaySeconds => -12;
-        public override void DrawEffects(int i, int j, int type, SpriteBatch spriteBatch, ref TileDrawInfo drawData)
-        {
-            drawData.colorTint = new Color(
-                (float)(Math.Sin(i * j * 0.15f) + 1) * 0.5f, 
-                (float)(Math.Cos(i + j * j * 0.855f) + 1) * 0.5f, 
-                (float)(Math.Sin((j ^ i) * 0.21f) + 1) * 0.5f);
-        }
-    }
-
-    public class RandomFraming : TileCode
+    public class RandomFramingChange : TileCode
     {
         public override int MaxLengthSeconds => 65;
         public override int MinLengthSeconds => 25;
+        public override int NextExtraDelaySeconds => -20;
 
         public override void NearbyEffects(int i, int j, int type, bool closer)
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)//serverside
                 return;
 
-            if(Main.rand.NextBool(35000))
+            if(Main.rand.NextBool(30000))
             {
                 Main.tile[i, j].TileFrameX = (short)(Main.rand.Next(16) * 18);
                 Main.tile[i, j].TileFrameY = (short)(Main.rand.Next(16) * 18);
@@ -181,7 +184,7 @@ namespace ChaosEdition
 
                 if (pos.Distance(playerPos) < 1000)
                 {
-                    Item.NewItem(Item.GetSource_None(), pos, ItemID.SilverCoin, Main.rand.Next(25, 200));
+                    Item.NewItem(Item.GetSource_None(), pos, ItemID.SilverCoin, Main.rand.Next(5, 110));
                 }
 
             }

@@ -43,7 +43,7 @@ namespace ChaosEdition
 
         public override void PreUpdateBuffs()
         {
-            if (ChaosEdition.ActiveEffects[typeof(GravityFlip)])
+            if (ChaosEdition.CodeInfo[typeof(GravityFlip)].Running)
             {
                 Player.gravControl = true;
                 if (Player.position.Y > 1500)
@@ -58,11 +58,11 @@ namespace ChaosEdition
         {
             //if (isActive)//this is never true for some reason
             //{
-                player.ManageSpecialBiomeVisuals("testInvert", ChaosEdition.ActiveEffects[typeof(InvertScreen)], player.Center);
-                player.ManageSpecialBiomeVisuals("Test2", ChaosEdition.ActiveEffects[typeof(ScreenGameboy)], player.Center);
-                player.ManageSpecialBiomeVisuals("Sandstorm", ChaosEdition.ActiveEffects[typeof(ScreenRed)], player.Center);
-                player.ManageSpecialBiomeVisuals("BloodMoon", ChaosEdition.ActiveEffects[typeof(ScreenRed)], player.Center);
-                player.ManageSpecialBiomeVisuals("ChaosEdition:Moonlord", ChaosEdition.ActiveEffects[typeof(ScreenMoonlord)], player.Center);
+                player.ManageSpecialBiomeVisuals("testInvert", ChaosEdition.CodeInfo[typeof(InvertScreen)].Running, player.Center);
+                player.ManageSpecialBiomeVisuals("Test2", ChaosEdition.CodeInfo[typeof(ScreenGameboy)].Running, player.Center);
+                player.ManageSpecialBiomeVisuals("Sandstorm", ChaosEdition.CodeInfo[typeof(ScreenRed)].Running, player.Center);
+                player.ManageSpecialBiomeVisuals("BloodMoon", ChaosEdition.CodeInfo[typeof(ScreenRed)].Running, player.Center);
+                player.ManageSpecialBiomeVisuals("ChaosEdition:Moonlord", ChaosEdition.CodeInfo[typeof(ScreenMoonlord)].Running, player.Center);
             //}
         }
     }

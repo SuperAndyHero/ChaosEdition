@@ -47,6 +47,8 @@ namespace ChaosEdition
 
         public override int NextExtraDelaySeconds => -25;
 
+        public override float SelectionWeight => 1.1f;
+
         [NetSync]
         public int index = Main.rand.Next(Main.tileCut.Length);
 
@@ -69,6 +71,8 @@ namespace ChaosEdition
         public override int MinLengthSeconds => 1;
 
         public override int NextExtraDelaySeconds => -30;
+
+        public override float SelectionWeight => 1.1f;
 
         [NetSync]
         public int index = Main.rand.Next(Main.tileBouncy.Length);
@@ -97,6 +101,8 @@ namespace ChaosEdition
         public override int MinLengthSeconds => 15;
 
         public override int NextExtraDelaySeconds => -10;
+
+        public override float SelectionWeight => 0.85f;
     }
 
     public class ScreenGameboy : MiscCode
@@ -105,6 +111,8 @@ namespace ChaosEdition
         public override int MinLengthSeconds => 15;
 
         public override int NextExtraDelaySeconds => -12;
+
+        public override float SelectionWeight => 0.85f;
     }
 
     public class ScreenRed : MiscCode
@@ -130,6 +138,8 @@ namespace ChaosEdition
         public override int MinLengthSeconds => 10;
 
         public override int NextExtraDelaySeconds => 20;
+
+        public override float SelectionWeight => 0.9f;
     }
 
     public class ChangeAnglerQuest : MiscCode
@@ -138,6 +148,9 @@ namespace ChaosEdition
         public override int MinLengthSeconds => 1;
 
         public override int NextExtraDelaySeconds => -15;
+
+        public override float SelectionWeight => 0.8f;
+
         bool ran = false;
         public override void Update()
         {

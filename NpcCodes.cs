@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.Audio;
 using Terraria.Graphics.CameraModifiers;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -55,15 +56,28 @@ namespace ChaosEdition
 
     }
 
+    //TODO: test
     public class EnemyColors : NpcCode
     {
-        public override int MaxLengthSeconds => 0;
+        public override int MaxLengthSeconds => 1;
 
         public override int NextExtraDelaySeconds => -30;
 
+        [NetSync]
+        public int seed = Main.rand.Next(10000000);
+
+        bool ran = false;
+        Random rand;
+
         public override void AI(NPC npc, ModNPC modNpc = null)
         {
-            npc.color = new Color(Main.rand.Next(256), Main.rand.Next(256), Main.rand.Next(256));
+            if (!ran)
+            {
+                Random rand = new Random(seed);
+                ran = true;
+            }
+
+            npc.color = new Color(rand.Next(256), rand.Next(256), rand.Next(256));
         }
 
     }
@@ -75,7 +89,7 @@ namespace ChaosEdition
         public override int NextExtraDelaySeconds => 30;
 
         [NetSync]
-        public int multSpeed = Main.rand.NextBool(25) ? 20 : Main.rand.Next(2, 5);
+        public int multSpeed = Main.rand.NextBool(25) ? 15 : Main.rand.Next(2, 7);
 
         public override bool PreAI(NPC npc, ModNPC modNpc = null)
         {
@@ -89,18 +103,17 @@ namespace ChaosEdition
         }
     }
 
-    //TODO: sync npc creation(?)
     public class NpcsIntoCritters : NpcCode
     {
-        public override int MaxLengthSeconds => 45;
+        public override int MaxLengthSeconds => 30;
 
         public override int MinLengthSeconds => 15;
 
-        public override int NextExtraDelaySeconds => -10;
+        public override int NextExtraDelaySeconds => -15;
 
         //these are not synced since the client does not need them
         public int critterType = ProjectilesIntoCritters.PickRandomCritter();
-        public int chance = Main.rand.Next(2000, 8000);
+        public int chance = Main.rand.Next(1500, 4000);
 
         public override void AI(NPC npc, ModNPC modNpc = null)
         {
@@ -134,6 +147,7 @@ namespace ChaosEdition
         public override int MaxLengthSeconds => 20;
 
         public override int MinLengthSeconds => 10;
+        public override float SelectionWeight => 1.05f;
 
 
         public override void HitEffect(NPC npc, NPC.HitInfo hit)
@@ -142,6 +156,22 @@ namespace ChaosEdition
             {
                 npc.life = 5;
             }
+        }
+    }
+
+    public class EnemiesCantDamage : NpcCode
+    {
+        public override int MaxLengthSeconds => 20;
+
+        public override int MinLengthSeconds => 10;
+
+        public override float SelectionWeight => 0.9f;
+
+        public override void ModifyHitPlayer(NPC npc, Player target, ref Player.HurtModifiers modifiers)
+        {
+            modifiers.Knockback *= 2;
+            modifiers.FinalDamage *= 0;
+            //SoundEngine.PlaySound(SoundID.AbigailAttack, target.position);//look for squeaky sound later
         }
     }
 }
