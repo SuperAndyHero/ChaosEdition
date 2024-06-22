@@ -5,7 +5,10 @@ Items: {
 	}
 }
 
-NPCs.SmileGhost.DisplayName: Smile Ghost
+NPCs: {
+	SmileGhost.DisplayName: Smile Ghost
+	AngryGhost.DisplayName: Angry Ghost
+}
 
 Configs: {
 	GameplayConfig: {

@@ -76,8 +76,10 @@ namespace ChaosEdition
                 Random rand = new Random(seed);
                 ran = true;
             }
-
-            npc.color = new Color(rand.Next(256), rand.Next(256), rand.Next(256));
+            else
+            {
+                npc.color = new Color(rand.Next(256), rand.Next(256), rand.Next(256));
+            }
         }
 
     }
