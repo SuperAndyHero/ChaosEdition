@@ -6,6 +6,10 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <AdditionalFiles Remove="Npcs\extra\**" />
+    <Compile Remove="Npcs\extra\**" />
+    <EmbeddedResource Remove="Npcs\extra\**" />
+    <None Remove="Npcs\extra\**" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FNA">

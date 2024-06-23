@@ -567,35 +567,39 @@ namespace ChaosEdition
 
     public class SmileGhost : PlayerCode
     {
-        public override int MaxLengthSeconds => 1;
-        public override int MinLengthSeconds => 1;
+        public override int MaxLengthSeconds => 3;
+        public override int MinLengthSeconds => 3;
 
         public override int NextExtraDelaySeconds => 40;
 
         public override float SelectionWeight => 0.5f;
 
-        bool ran = false;//no sync
-        //int npcIndex = -1;//no sync
+        //does not need syncinc since this is handled by the server
+        bool ran = false;
+        int SkipPlayersCount = Main.rand.Next(16);
+
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)//serverside
                 return;
 
+            if (!player.active)
+                return;
+
+            if(SkipPlayersCount > 0)//skip a random amount of players before spawning
+            {
+                SkipPlayersCount--;
+                return;
+            }
+
             if (!ran)
             {
-                Vector2 pos = player.position + (Vector2.UnitY * (Main.screenWidth * 0.75f)).RotatedByRandom(Math.Tau);
+                //originally used screenwidth for the distance, but for the server this is always 0
+                Vector2 pos = player.position + (Vector2.UnitY * 1000).RotatedByRandom(Math.Tau);
                 NPC.NewNPC(player.GetSource_GiftOrReward(), (int)pos.X, (int)pos.Y, ModContent.NPCType<Npcs.SmileGhost>());
                 ran = true;
             }
         }
-
-        //public override void OnRemove()//ghost despawns on its own
-        //{
-        //    if (Main.npc[npcIndex].active && Main.npc[npcIndex].type == ModContent.NPCType<Npcs.SmileGhost>())
-        //    {
-        //        Main.npc[npcIndex].active = false;
-        //    }
-        //}
     }
 
     //TODO: not sure if its possible to sync the health and if its catchable
