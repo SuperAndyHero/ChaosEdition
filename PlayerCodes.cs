@@ -136,8 +136,8 @@ namespace ChaosEdition
     {
         public override int MaxLengthSeconds => 1;
         public override int MinLengthSeconds => 1;
-
         public override int NextExtraDelaySeconds =>  -20;
+        public override float SelectionWeight => 1.3f;
         bool ran = false;
 
         [NetSync]
@@ -386,8 +386,11 @@ namespace ChaosEdition
         {
             if (Main.netMode == NetmodeID.Server)
                 return;
-
-            if (Main.GameUpdateCount % 40 == 0)
+            bool sitting = player.sitting.TryGetSittingBlock(player, out Tile tile);
+            if (Main.GameUpdateCount % 40 == 0 && 
+                !(sitting && 
+                (tile.TileType == TileID.Toilets || 
+                (tile.TileType == TileID.Chairs && (tile.TileFrameY == 58 || tile.TileFrameY == 818)))))
             {
                 Projectile.NewProjectile(player.GetSource_Loot(), player.Center, new Vector2(Main.rand.NextFloat(-0.1f, 0.1f), 0), projectileType, 100, 1, player.whoAmI);
             }
@@ -768,7 +771,6 @@ namespace ChaosEdition
         }
     }
 
-    
 
     #region player drawing
     public class RandomPlayerLayerColors : PlayerCode
