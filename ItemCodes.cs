@@ -13,9 +13,9 @@ namespace ChaosEdition
     //TODO: reset item colors at the end
     public class ItemColors : ItemCode 
     {
-        public override int MaxLengthSeconds => 120;
+        public override int? MaxLengthSeconds => 120;
 
-        public override int NextExtraDelaySeconds => -10;
+        public override int? NextExtraDelaySeconds => -10;
 
         public override bool PreDrawInInventory(Item item, SpriteBatch spriteBatch, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale) 
         {
@@ -43,9 +43,9 @@ namespace ChaosEdition
 
     public class ItemsResized : ItemCode
     {
-        public override int MaxLengthSeconds => 120;
+        public override int? MaxLengthSeconds => 120;
 
-        public override int NextExtraDelaySeconds => -10;
+        public override int? NextExtraDelaySeconds => -10;
 
         public override float SelectionWeight => 0.93f;
 
@@ -67,9 +67,9 @@ namespace ChaosEdition
 
     public class GroundItemRotation : ItemCode
     {
-        public override int MaxLengthSeconds => 90;
+        public override int? MaxLengthSeconds => 90;
 
-        public override int NextExtraDelaySeconds => -5;
+        public override int? NextExtraDelaySeconds => -5;
 
         public override bool PreDrawInWorld(Item item, SpriteBatch spriteBatch, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
         {
@@ -83,11 +83,11 @@ namespace ChaosEdition
 
     public class ItemScaleChange : ItemCode
     {
-        public override int MaxLengthSeconds => 70;
+        public override int? MaxLengthSeconds => 70;
 
-        public override int MinLengthSeconds => 20;
+        public override int? MinLengthSeconds => 20;
 
-        public override int NextExtraDelaySeconds => -5;
+        public override int? NextExtraDelaySeconds => -5;
 
         public override bool PreDrawInWorld(Item item, SpriteBatch spriteBatch, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
         {

@@ -16,10 +16,10 @@ namespace ChaosEdition
 {
     public class EnemyHoming : NpcCode
     {
-        public override int MaxLengthSeconds => 85;
-        public override int MinLengthSeconds => 15;
+        public override int? MaxLengthSeconds => 85;
+        public override int? MinLengthSeconds => 15;
 
-        public override int NextExtraDelaySeconds => 30;
+        public override int? NextExtraDelaySeconds => 30;
 
         [NetSync]
         public int Timer = 0;//netsync is only used here so that people joining get the right timer
@@ -56,39 +56,11 @@ namespace ChaosEdition
 
     }
 
-    //TODO: test
-    public class EnemyColors : NpcCode
-    {
-        public override int MaxLengthSeconds => 1;
-
-        public override int NextExtraDelaySeconds => -30;
-
-        [NetSync]
-        public int seed = Main.rand.Next(10000000);
-
-        bool ran = false;
-        Random rand;
-
-        public override void AI(NPC npc, ModNPC modNpc = null)
-        {
-            if (!ran)
-            {
-                Random rand = new Random(seed);
-                ran = true;
-            }
-            else
-            {
-                npc.color = new Color(rand.Next(256), rand.Next(256), rand.Next(256));
-            }
-        }
-
-    }
-
     public class MultNpcSpeed : NpcCode
     {
-        public override int MaxLengthSeconds => 55;
+        public override int? MaxLengthSeconds => 55;
 
-        public override int NextExtraDelaySeconds => 30;
+        public override int? NextExtraDelaySeconds => 30;
 
         [NetSync]
         public int multSpeed = Main.rand.NextBool(25) ? 15 : Main.rand.Next(2, 7);
@@ -107,11 +79,11 @@ namespace ChaosEdition
 
     public class NpcsIntoCritters : NpcCode
     {
-        public override int MaxLengthSeconds => 30;
+        public override int? MaxLengthSeconds => 30;
 
-        public override int MinLengthSeconds => 15;
+        public override int? MinLengthSeconds => 15;
 
-        public override int NextExtraDelaySeconds => -15;
+        public override int? NextExtraDelaySeconds => -15;
 
         //these are not synced since the client does not need them
         public int critterType = ProjectilesIntoCritters.PickRandomCritter();
@@ -131,9 +103,9 @@ namespace ChaosEdition
 
     public class EnemyRotation : NpcCode
     {
-        public override int MaxLengthSeconds => 45;
+        public override int? MaxLengthSeconds => 45;
 
-        public override int NextExtraDelaySeconds => -20;
+        public override int? NextExtraDelaySeconds => -20;
 
         [NetSync]
         public float rotationAmount = Main.rand.NextFloat(-0.4f, 0.4f);
@@ -146,9 +118,9 @@ namespace ChaosEdition
 
     public class EnemiesCantDie : NpcCode
     {
-        public override int MaxLengthSeconds => 20;
+        public override int? MaxLengthSeconds => 20;
 
-        public override int MinLengthSeconds => 10;
+        public override int? MinLengthSeconds => 10;
         public override float SelectionWeight => 1.05f;
 
 
@@ -163,9 +135,9 @@ namespace ChaosEdition
 
     public class EnemiesCantDamage : NpcCode
     {
-        public override int MaxLengthSeconds => 20;
+        public override int? MaxLengthSeconds => 20;
 
-        public override int MinLengthSeconds => 10;
+        public override int? MinLengthSeconds => 10;
 
         public override float SelectionWeight => 0.9f;
 

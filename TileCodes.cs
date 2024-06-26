@@ -51,9 +51,9 @@ namespace ChaosEdition
 
     public class RandomFramingChange : TileCode
     {
-        public override int MaxLengthSeconds => 65;
-        public override int MinLengthSeconds => 25;
-        public override int NextExtraDelaySeconds => -20;
+        public override int? MaxLengthSeconds => 65;
+        public override int? MinLengthSeconds => 25;
+        public override int? NextExtraDelaySeconds => -20;
 
         public override void NearbyEffects(int i, int j, int type, bool closer)
         {
@@ -72,9 +72,9 @@ namespace ChaosEdition
     public class RandomPickTile : TileCode
     {
 
-        public override int MaxLengthSeconds => 95;
+        public override int? MaxLengthSeconds => 95;
 
-        public override int NextExtraDelaySeconds => -12;
+        public override int? NextExtraDelaySeconds => -12;
         public override void NearbyEffects(int i, int j, int type, bool closer)
         {
             if (Main.netMode == NetmodeID.Server)//clientside
@@ -91,10 +91,10 @@ namespace ChaosEdition
     public class PlaceRandomTorch : TileCode
     {
 
-        public override int MaxLengthSeconds => 30;
-        public override int MinLengthSeconds => 10;
+        public override int? MaxLengthSeconds => 30;
+        public override int? MinLengthSeconds => 10;
 
-        public override int NextExtraDelaySeconds => -5;
+        public override int? NextExtraDelaySeconds => -5;
         public override void NearbyEffects(int i, int j, int type, bool closer)
         {
             if (Main.netMode == NetmodeID.Server)
@@ -114,10 +114,10 @@ namespace ChaosEdition
     public class WormsFromDirt : TileCode
     {
 
-        public override int MaxLengthSeconds => 60;
-        public override int MinLengthSeconds => 30;
+        public override int? MaxLengthSeconds => 60;
+        public override int? MinLengthSeconds => 30;
 
-        public override int NextExtraDelaySeconds => -10;
+        public override int? NextExtraDelaySeconds => -10;
         public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)
@@ -142,10 +142,10 @@ namespace ChaosEdition
     public class SkeletonsFromGraves : TileCode
     {
 
-        public override int MaxLengthSeconds => 120;
-        public override int MinLengthSeconds => 45;
+        public override float MaxLength => 5;
+        public override float MinLength => 2;
 
-        public override int NextExtraDelaySeconds => -15;
+        public override float NextExtraDelay => -0.66f;
         public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)
@@ -168,10 +168,10 @@ namespace ChaosEdition
     public class GraveRobbery : TileCode
     {
 
-        public override int MaxLengthSeconds => 45;
-        public override int MinLengthSeconds => 25;
+        public override int? MaxLengthSeconds => 45;
+        public override int? MinLengthSeconds => 25;
 
-        public override int NextExtraDelaySeconds => -5;
+        public override int? NextExtraDelaySeconds => -5;
         public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)

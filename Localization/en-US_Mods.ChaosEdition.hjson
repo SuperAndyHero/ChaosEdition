@@ -28,6 +28,16 @@ Configs: {
 			Label: Delay Between Effects
 			Tooltip: ""
 		}
+
+		EnableCodeSelection: {
+			Label: Enable Code Selection
+			Tooltip: ""
+		}
+
+		ConfigLengthMultiplier: {
+			Label: Config Length Multiplier
+			Tooltip: ""
+		}
 	}
 
 	InterfaceConfig: {
@@ -62,6 +72,16 @@ Configs: {
 			Label: Show Active Effect Time
 			Tooltip: ""
 		}
+
+		DisableScreenInvert: {
+			Label: Disable Screen Invert
+			Tooltip: ""
+		}
+
+		ShowEffectTimeLeft: {
+			Label: Show Effect Time Left
+			Tooltip: ""
+		}
 	}
 
 	DisableEffectsConfig: {
@@ -79,6 +99,16 @@ Configs: {
 
 		EnableHugeItem: {
 			Label: Enable Huge Item
+			Tooltip: ""
+		}
+
+		CheatyCodes: {
+			Label: Cheaty Codes
+			Tooltip: ""
+		}
+
+		DestructiveCodes: {
+			Label: Destructive Codes
 			Tooltip: ""
 		}
 	}

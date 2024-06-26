@@ -58,7 +58,7 @@ namespace ChaosEdition
         {
             //if (isActive)//this is never true for some reason
             //{
-                player.ManageSpecialBiomeVisuals("testInvert", ChaosEdition.CodeInfo[typeof(InvertScreen)].Running, player.Center);
+                player.ManageSpecialBiomeVisuals("testInvert", !ChaosEdition.ConfigScreenInvertShow && ChaosEdition.CodeInfo[typeof(InvertScreen)].Running, player.Center);
                 player.ManageSpecialBiomeVisuals("Test2", ChaosEdition.CodeInfo[typeof(ScreenGameboy)].Running, player.Center);
                 player.ManageSpecialBiomeVisuals("Sandstorm", ChaosEdition.CodeInfo[typeof(ScreenRed)].Running, player.Center);
                 player.ManageSpecialBiomeVisuals("BloodMoon", ChaosEdition.CodeInfo[typeof(ScreenRed)].Running, player.Center);

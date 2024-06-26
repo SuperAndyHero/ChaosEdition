@@ -78,27 +78,23 @@ namespace ChaosEdition
 
         #region config options
         //clientside
-        public static bool ConfigDrawCountdownTimer = true;
-        public static bool ConfigDrawActiveCodeCount = true;
-        public static bool ConfigDrawActiveCodes = false;
-        public static bool ConfigDrawActiveTimes = false;
-        public static bool ConfigDrawFullCodeList = false;
+        public static bool   ConfigDrawCountdownTimer = true;
+        public static bool   ConfigDrawActiveCodeCount = true;
+        public static bool   ConfigDrawActiveCodes = false;
+        public static bool   ConfigDrawActiveTimes = false;
+        public static bool   ConfigDrawFullCodeList = false;
 
-        public static int ConfigDelayBetweenCodes = DefaultDelayBetweenCodes;
-
+        public static int    ConfigDelayBetweenCodes = DefaultDelayBetweenCodes;
+        public static float  ConfigCodeLengthMult = 1;
 
         //serverside
-        public static bool ConfigAutoSelectingCodes = true;//disable for testing
-        public static int ConfigMaxActiveCodes = 10;
+        public static bool   ConfigAutoSelectingCodes = true;//disable for testing
+        public static int    ConfigMaxActiveCodes = 10;
 
-        public static bool ConfigCheatyCodes = false;
-        public static bool ConfigDestructiveCodes = false;
-        #endregion
+        public static bool   ConfigCheatyCodes = false;
+        public static bool   ConfigDestructiveCodes = false;
 
-        #region TEMP BOOLS FOR CODES (todo: make this a generated list)
-        //public static bool DirtRodEffectActive = true;
-        //public static bool RandomItemFiresaleActive = true;
-        //public static bool HugeItemActive = true;
+        public static bool   ConfigScreenInvertShow = false;
         #endregion
 
         //todo: split this into another mod, make swaps determainistic, make it possible to undo swaps, call it terraria corruptor or something
@@ -134,8 +130,6 @@ namespace ChaosEdition
             }
             AllCodeTypes = arr.ToArray();
 
-            RebuildWeightedRandom();
-
             CameraModifier = new();
 
             //SyncValueQueue = new Queue<dynamic>();
@@ -143,6 +137,8 @@ namespace ChaosEdition
             //MonoModHooks.RequestNativeAccess();//needed for detours
             Filters.Scene["ChaosEdition:Moonlord"] = new Filter(new ScreenShaderData("FilterMoonLordShake"), EffectPriority.High);
             IsModLoaded = true;
+
+            RebuildWeightedRandom();
         }
 
         public override void Unload()
@@ -397,8 +393,13 @@ namespace ChaosEdition
         //type for now, can change to something with more info later
         public static WeightedRandom<Type> WeightedRandom = new WeightedRandom<Type>();
 
+        //public static bool BuiltRandom = false;
+        public static int CodeListIndex = 0;
         public static void RebuildWeightedRandom()
         {
+            if (!IsModLoaded)
+                return;
+
             WeightedRandom = new WeightedRandom<Type>();
             foreach (KeyValuePair<Type, CodeData> pair in CodeInfo)
             {
@@ -419,6 +420,8 @@ namespace ChaosEdition
                     WeightedRandom.Add(pair.Key, pair.Value.SelectionWeight);
                 }
             }
+
+            //BuiltRandom = true;
         }
     }
 
@@ -438,6 +441,18 @@ namespace ChaosEdition
         {
             if(Main.netMode != NetmodeID.Server) //will never be called anyway on server, here just to be safe
                 UpdateCodes();
+
+            if(Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.PageDown) && Main.oldKeyState.IsKeyUp(Microsoft.Xna.Framework.Input.Keys.PageDown))
+            {
+                CodeListIndex++;
+                //Main.NewText(CodeListIndex);
+            }
+            if (Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.PageUp) && Main.oldKeyState.IsKeyUp(Microsoft.Xna.Framework.Input.Keys.PageUp))
+            {
+                if(CodeListIndex > 0)
+                    CodeListIndex--;
+                //Main.NewText(CodeListIndex);
+            }
         }
 
         public void UpdateCodes()
@@ -557,13 +572,26 @@ namespace ChaosEdition
             {
                 int count = 0;
                 int allCount = 0;
+                int indexskip = 0;
 
                 if (ConfigDrawFullCodeList)
                 {
-                    foreach (KeyValuePair<Type, CodeData> pair in CodeInfo)
+                    foreach (Tuple<Type, double> pair in WeightedRandom.elements)
                     {
-                        Color color = pair.Value.Running ? new Color(100, 255, 100) : (allCount % 2 == 0 ? Color.Tomato : Color.CornflowerBlue);
-                        Utils.DrawBorderString(spriteBatch, pair.Key.Name + " : " + pair.Value, new Vector2(5, 45 + (15 * allCount)), color);
+                        if (ChaosEdition.CodeListIndex > indexskip)
+                        {
+                            indexskip++;
+                            continue;
+                        }
+                        CodeData data = CodeInfo[pair.Item1];
+                        Color color = data.Running ? new Color(100, 255, 100) : ((allCount + indexskip) % 2 == 0 ? Color.Tomato : Color.CornflowerBlue);
+                        Utils.DrawBorderString(spriteBatch, 
+                            pair.Item1.Name + 
+                            " : " + 
+                            pair.Item1 + 
+                            (data.Flags.HasFlag(CodeFlags.Cheaty) ? " (*)" : "") +
+                            (data.Flags.HasFlag(CodeFlags.Destructive) ? " (!)" : ""), 
+                            new Vector2(5, 45 + (15 * allCount)), color);
                         allCount++;
                     }
                 }
@@ -578,7 +606,14 @@ namespace ChaosEdition
                         if (active)
                         {
                             if (ConfigDrawActiveCodes)
-                                Utils.DrawBorderString(spriteBatch, type.Name + " " + (int)(code.TimeActiveSpan - DateTime.Now.Subtract(code.TimeCreatedAt)).TotalSeconds, new Vector2(10, 110 + (15 * count)), new Color(100, 255, 100));
+                                Utils.DrawBorderString(
+                                    spriteBatch, 
+                                    type.Name + " " +
+                                        (ConfigDrawActiveTimes ? 
+                                            ((int)(code.TimeActiveSpan - DateTime.Now.Subtract(code.TimeCreatedAt)).TotalSeconds).ToString() : 
+                                            " "), 
+                                    new Vector2(10, (ConfigDrawActiveCodeCount ? 90 : 110) + (15 * count)), 
+                                    new Color(100, 255, 100));
 
                             count++;
                         }

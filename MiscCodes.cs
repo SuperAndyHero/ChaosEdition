@@ -42,10 +42,10 @@ namespace ChaosEdition
     #region tile effects
     public class InvertRandomTileCut : MiscCode
     {
-        public override int MaxLengthSeconds => 1;
-        public override int MinLengthSeconds => 1;
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
 
-        public override int NextExtraDelaySeconds => -25;
+        public override int? NextExtraDelaySeconds => -25;
 
         public override float SelectionWeight => 1.1f;
 
@@ -67,10 +67,10 @@ namespace ChaosEdition
     //TODO: sync change amount and maybe a seed fort he random, just made sure all are synced/determainate
     public class MakeRandomTilesBouncy : MiscCode
     {
-        public override int MaxLengthSeconds => 1;
-        public override int MinLengthSeconds => 1;
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
 
-        public override int NextExtraDelaySeconds => -30;
+        public override float NextExtraDelay => -1;
 
         public override float SelectionWeight => 1.1f;
 
@@ -97,57 +97,57 @@ namespace ChaosEdition
     #region screen effects
     public class InvertScreen : MiscCode
     {
-        public override int MaxLengthSeconds => 20;
-        public override int MinLengthSeconds => 15;
+        public override float MaxLength => 0.8f;
+        public override float MinLength => 0.5f;
 
-        public override int NextExtraDelaySeconds => -10;
+        public override float NextExtraDelay => -0.45f;
 
         public override float SelectionWeight => 0.85f;
     }
 
     public class ScreenGameboy : MiscCode
     {
-        public override int MaxLengthSeconds => 40;
-        public override int MinLengthSeconds => 15;
+        public override int? MaxLengthSeconds => 40;
+        public override int? MinLengthSeconds => 15;
 
-        public override int NextExtraDelaySeconds => -12;
+        public override int? NextExtraDelaySeconds => -12;
 
         public override float SelectionWeight => 0.85f;
     }
 
     public class ScreenRed : MiscCode
     {
-        public override int MaxLengthSeconds => 60;
-        public override int MinLengthSeconds => 15;
+        public override int? MaxLengthSeconds => 60;
+        public override int? MinLengthSeconds => 15;
 
-        public override int NextExtraDelaySeconds => -15;
+        public override int? NextExtraDelaySeconds => -15;
     }
 
     public class ScreenMoonlord : MiscCode
     {
-        public override int MaxLengthSeconds => 30;
-        public override int MinLengthSeconds => 15;
+        public override int? MaxLengthSeconds => 30;
+        public override int? MinLengthSeconds => 15;
 
-        public override int NextExtraDelaySeconds => -5;
+        public override int? NextExtraDelaySeconds => -5;
     }
     #endregion
 
     public class GravityFlip : MiscCode
     {
-        public override int MaxLengthSeconds => 60;
-        public override int MinLengthSeconds => 10;
+        public override int? MaxLengthSeconds => 60;
+        public override int? MinLengthSeconds => 10;
 
-        public override int NextExtraDelaySeconds => 20;
+        public override int? NextExtraDelaySeconds => 20;
 
         public override float SelectionWeight => 0.9f;
     }
 
     public class ChangeAnglerQuest : MiscCode
     {
-        public override int MaxLengthSeconds => 1;
-        public override int MinLengthSeconds => 1;
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
 
-        public override int NextExtraDelaySeconds => -15;
+        public override int? NextExtraDelaySeconds => -15;
 
         public override float SelectionWeight => 0.8f;
 
@@ -184,10 +184,10 @@ namespace ChaosEdition
 
     public class DelayCameraPosition : MiscCode
     {
-        public override int MaxLengthSeconds => 60;
-        public override int MinLengthSeconds => 10;
+        public override int? MaxLengthSeconds => 60;
+        public override int? MinLengthSeconds => 10;
 
-        public override int NextExtraDelaySeconds => -15;
+        public override int? NextExtraDelaySeconds => -15;
 
         bool ran = false;
         Vector2[] vec2array;
@@ -219,8 +219,8 @@ namespace ChaosEdition
 
     public class FreezeCameraPosition : MiscCode
     {
-        public override int MaxLengthSeconds => 8;
-        public override int MinLengthSeconds => 2;
+        public override int? MaxLengthSeconds => 8;
+        public override int? MinLengthSeconds => 2;
 
 
         bool ran = false;
@@ -235,6 +235,158 @@ namespace ChaosEdition
             }
 
             cameraInfo.CameraPosition = pos;
+        }
+    }
+
+    public class EnemyColors : MiscCode
+    {
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
+
+        public override int? NextExtraDelaySeconds => -30;
+        //public override float SelectionWeight => 0.9f;
+
+        [NetSync]
+        public int seed = Main.rand.Next(10000000);
+
+        bool ran = false;
+        Random rand;
+
+        public override void Update()
+        {
+            if (!ran)
+            {
+                Random rand = new Random(seed);
+                foreach (NPC npc in Main.npc)
+                {
+                    npc.color = new Color(rand.Next(32, 256), rand.Next(32, 256), rand.Next(32, 256));
+                }
+                ran = true;
+            }
+        }
+    }
+
+    public class InvertPlayerVelocty : MiscCode
+    {
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
+
+        public override float NextExtraDelay => -1.2f ;
+
+        public override float SelectionWeight => 0.75f;
+
+        bool ran = false;
+
+        public override void Update()
+        {
+            if (!ran)
+            {
+                foreach (Player player in Main.player)
+                {
+                    if (!player.active)
+                        continue;
+
+                    player.velocity = -player.velocity;
+                }
+                ran = true;
+            }
+        }
+    }
+
+    public class InvertProjectileVelocty : MiscCode
+    {
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
+
+        public override float NextExtraDelay => -1.2f;
+
+        public override float SelectionWeight => 0.75f;
+
+        bool ran = false;
+
+        public override void Update()
+        {
+            if (!ran)
+            {
+                foreach (Projectile proj in Main.projectile)
+                {
+                    if (!proj.active)
+                        continue;
+
+                    proj.velocity = -proj.velocity;
+                }
+                ran = true;
+            }
+        }
+    }
+
+    public class InvertNpcVelocity : MiscCode
+    {
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
+
+        public override float NextExtraDelay => -1.2f;
+
+        public override float SelectionWeight => 0.75f;
+
+        bool ran = false;
+
+        public override void Update()
+        {
+            if (!ran)
+            {
+                foreach (NPC npc in Main.npc)
+                {
+                    if (!npc.active)
+                        continue;
+
+                    npc.velocity = -npc.velocity;
+                }
+                ran = true;
+            }
+        }
+    }
+
+    public class InvertAllVelocity : MiscCode
+    {
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
+
+        public override float NextExtraDelay => -1.2f;
+
+        public override float SelectionWeight => 0.75f;
+
+        bool ran = false;
+
+        public override void Update()
+        {
+            if (!ran)
+            {
+                foreach (Player player in Main.player)
+                {
+                    if (!player.active)
+                        continue;
+
+                    player.velocity = -player.velocity;
+                }
+
+                foreach (NPC npc in Main.npc)
+                {
+                    if (!npc.active)
+                        continue;
+
+                    npc.velocity = -npc.velocity;
+                }
+
+                foreach (Projectile proj in Main.projectile)
+                {
+                    if (!proj.active)
+                        continue;
+
+                    proj.velocity = -proj.velocity;
+                }
+                ran = true;
+            }
         }
     }
 

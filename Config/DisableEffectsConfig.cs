@@ -8,13 +8,26 @@ namespace ChaosEdition.Configs
 	{
 		public override ConfigScope Mode => ConfigScope.ServerSide;
 
-        //[DefaultValue(true)]
-        //public bool EnableDirtRodEffect { get { return ChaosEdition.DirtRodEffectActive; } set { ChaosEdition.DirtRodEffectActive = value; } }
+        [DefaultValue(false)]
+        public bool CheatyCodes
+        {
+            get { return ChaosEdition.ConfigCheatyCodes; }
+            set
+            {
+                ChaosEdition.ConfigCheatyCodes = value;
+                ChaosEdition.RebuildWeightedRandom();
+            }
+        }
 
-        //[DefaultValue(true)]
-        //public bool EnableFireSale { get { return ChaosEdition.RandomItemFiresaleActive; } set { ChaosEdition.RandomItemFiresaleActive = value; } }
-
-        //[DefaultValue(true)]
-        //public bool EnableHugeItem { get { return ChaosEdition.HugeItemActive; } set { ChaosEdition.HugeItemActive = value; } }
+        [DefaultValue(false)]
+        public bool DestructiveCodes 
+        { 
+            get { return ChaosEdition.ConfigDestructiveCodes; } 
+            set 
+            { 
+                ChaosEdition.ConfigDestructiveCodes = value;
+                ChaosEdition.RebuildWeightedRandom();
+            } 
+        }
     }
 }

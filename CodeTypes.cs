@@ -33,15 +33,23 @@ namespace ChaosEdition
             Cheaty = 1, //Duping item codes, high damage increases
             Destructive = 2, //potenially breaks builds, destructive codes
             //etc = 4, etc = 8,
+            //possibly add tags for all major releases?
             SingleplayerOnly = 64,
         }
 
         //todo: this may need to store a seed from the server, that way nothing should need to be synced after creation
         //not sure if above comment is still needed, since this can be done with currenr sync system
 
-        public virtual int MaxLengthSeconds => 40;//this gets scaled based on adjusted time delay, this could be replaced by a float where default delay = 1.0
-        public virtual int MinLengthSeconds => (int)(MaxLengthSeconds * 0.5f);
-        public virtual int NextExtraDelaySeconds => 0;
+        public virtual int? MaxLengthSeconds => null;//this gets scaled based on adjusted time delay, this could be replaced by a float where default delay = 1.0
+        public virtual int? MinLengthSeconds => null;
+        public virtual int? NextExtraDelaySeconds => null;
+
+        //1.0 = DefaultDelayBetweenCodes (25 seconds, default may be changed in future)
+        //time should be relative to the length between codes, as they get scaled anyway
+        public virtual float MaxLength => 1.6f;//this gets scaled based on adjusted time delay, this could be replaced by a float where default delay = 1.0
+        public virtual float MinLength => MaxLength / 2f;//half of above
+        public virtual float NextExtraDelay => 0;
+
         public abstract List<Code> ContainingList { get; }
 
         public virtual CodeFlags Flags => CodeFlags.None;
@@ -56,17 +64,27 @@ namespace ChaosEdition
             if (!ChaosEdition.IsModLoaded)//if this is being initalized to get its values
                 return;
 
-            //Type type = GetType();
+            Type type = GetType();//debug
             if (!EffectInfo[GetType()].Running)
             {
                 if (Main.netMode != NetmodeID.MultiplayerClient)//server sends these values beforehand(or singleplayer)
                 {
+                    int a = (int)(((MinLengthSeconds * TimeDelayScale) ?? ((MaxLengthSeconds * TimeDelayScale) / 2) ?? MathF.Round(MinLength * ConfigDelayBetweenCodes)) * ConfigCodeLengthMult);
+                    int b = (int)(((MaxLengthSeconds * TimeDelayScale) ?? MathF.Round(MaxLength * ConfigDelayBetweenCodes * ConfigCodeLengthMult)) * ConfigCodeLengthMult);
                     //TODO: split delay scale and have this use new EffectLengthScale
-                    TimeActiveSpan = new TimeSpan(0, 0, (int)(Main.rand.Next(MinLengthSeconds, MaxLengthSeconds + 1) * TimeDelayScale));
+                    TimeActiveSpan = new TimeSpan(0, 0, 
+                        Math.Max(1, (int)(
+                            Main.rand.Next(
+                                (int)(((MinLengthSeconds * TimeDelayScale) ?? ((MaxLengthSeconds * TimeDelayScale) / 2) ?? MathF.Round(MinLength * ConfigDelayBetweenCodes)) * ConfigCodeLengthMult),
+                                Math.Max(1, (int)(((MaxLengthSeconds * TimeDelayScale) ?? MathF.Round(MaxLength * ConfigDelayBetweenCodes)) * ConfigCodeLengthMult))
+                                )
+                            ))
+                        );
 
                     ChaosEdition.TimeLastCodeSelected = DateTime.Now;
                     //this is added to support multiple being added at once, since it should be reset to zero before a new code instance is created, could cause issues if many are created
-                    ChaosEdition.CurrentExtraDelay += new TimeSpan(0, 0, (int)(NextExtraDelaySeconds * TimeDelayScale));
+                    ChaosEdition.CurrentExtraDelay += 
+                        new TimeSpan(0, 0, (int)(((NextExtraDelaySeconds * TimeDelayScale) ?? MathF.Round(NextExtraDelay * ConfigDelayBetweenCodes))));
                 }
 
                 if(Main.netMode == NetmodeID.Server)//sync new code and current timer to mp clients

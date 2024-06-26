@@ -107,11 +107,11 @@ namespace ChaosEdition
     //TODO: figure out if this breaks in multiplayer
     public class DropTombstoneRandom : PlayerCode
     {
-        public override int MaxLengthSeconds => 5;
+        public override int? MaxLengthSeconds => 5;
 
-        public override int MinLengthSeconds => 2;
+        public override int? MinLengthSeconds => 2;
 
-        public override int NextExtraDelaySeconds => 5;
+        public override int? NextExtraDelaySeconds => 5;
         public override float SelectionWeight => 0.4f;
 
         private int counter = 10;//serverside anyway, no need to sync
@@ -134,9 +134,9 @@ namespace ChaosEdition
     //TODO: figure out if this breaks in multiplayer (again, clientsided only was broken)
     public class MakeOneItemBait : PlayerCode
     {
-        public override int MaxLengthSeconds => 1;
-        public override int MinLengthSeconds => 1;
-        public override int NextExtraDelaySeconds =>  -20;
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
+        public override int? NextExtraDelaySeconds =>  -20;
         public override float SelectionWeight => 1.3f;
         bool ran = false;
 
@@ -155,10 +155,10 @@ namespace ChaosEdition
 
     public class MakeOneItemHuge : PlayerCode
     {
-        public override int MaxLengthSeconds => 45;
-        public override int MinLengthSeconds => 10;
+        public override int? MaxLengthSeconds => 45;
+        public override int? MinLengthSeconds => 10;
 
-        public override int NextExtraDelaySeconds => -3;
+        public override int? NextExtraDelaySeconds => -3;
         bool ran = false;
 
         Item iteminstance;
@@ -192,10 +192,10 @@ namespace ChaosEdition
     //TODO: make this not broken in MP
     public class RandomItemFiresale : PlayerCode
     {
-        public override int MaxLengthSeconds => 10;
-        public override int MinLengthSeconds => 10;
+        public override int? MaxLengthSeconds => 10;
+        public override int? MinLengthSeconds => 10;
 
-        public override int NextExtraDelaySeconds => -7;
+        public override int? NextExtraDelaySeconds => -7;
         bool ran = false;
         Item selectedItem;
 
@@ -255,10 +255,10 @@ namespace ChaosEdition
 
     public class HeldItemOneDamageChange : PlayerCode
     {
-        public override int MaxLengthSeconds => 1;
-        public override int MinLengthSeconds => 1;
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
 
-        public override int NextExtraDelaySeconds => -18;
+        public override int? NextExtraDelaySeconds => -18;
 
         public override float SelectionWeight => 1.2f;
 
@@ -280,9 +280,9 @@ namespace ChaosEdition
     //TODO: damage is broken in MP
     public class OPDirtRod : PlayerCode
     {
-        public override int MaxLengthSeconds => 45;
-        public override int MinLengthSeconds => 15;
-        public override int NextExtraDelaySeconds => 40;
+        public override int? MaxLengthSeconds => 45;
+        public override int? MinLengthSeconds => 15;
+        public override int? NextExtraDelaySeconds => 40;
         public override CodeFlags Flags => CodeFlags.SingleplayerOnly;
         bool ran = false;
         Player playerInstance;//unsure of multiplater compat
@@ -316,10 +316,10 @@ namespace ChaosEdition
     //check MP
     public class ChristmasGift : PlayerCode
     {
-        public override int MaxLengthSeconds => 1;
-        public override int MinLengthSeconds => 1;
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
 
-        public override int NextExtraDelaySeconds => 20;
+        public override int? NextExtraDelaySeconds => 20;
 
         public override float SelectionWeight => 0.85f;
 
@@ -354,8 +354,8 @@ namespace ChaosEdition
 
     public class ExplosiveDiarrhea : PlayerCode
     {
-        public override int MaxLengthSeconds => 5;
-        public override int MinLengthSeconds => 4;
+        public override int? MaxLengthSeconds => 5;
+        public override int? MinLengthSeconds => 4;
 
         public override float SelectionWeight => 0.9f;
 
@@ -401,8 +401,8 @@ namespace ChaosEdition
     //may need tile syncs, seems to work fine
     public class GrowTallPLants : PlayerCode
     {
-        public override int MaxLengthSeconds => 10;
-        public override int NextExtraDelaySeconds => -12;
+        public override int? MaxLengthSeconds => 10;
+        public override int? NextExtraDelaySeconds => -12;
 
         public override float SelectionWeight => 1.2f;
 
@@ -434,9 +434,9 @@ namespace ChaosEdition
 
     public class ReframeTiles : PlayerCode
     {
-        public override int MaxLengthSeconds => 20;
+        public override int? MaxLengthSeconds => 20;
 
-        public override int NextExtraDelaySeconds => -20;
+        public override int? NextExtraDelaySeconds => -20;
         const int radius = 15;
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
@@ -457,9 +457,9 @@ namespace ChaosEdition
     //todo: this may need to use a vanilla npc sync
     public class TeleportEnemiesAroundPlayer : PlayerCode
     {
-        public override int MaxLengthSeconds => 5;
+        public override int? MaxLengthSeconds => 5;
 
-        public override int NextExtraDelaySeconds => -25;
+        public override int? NextExtraDelaySeconds => -25;
         int count = 0;
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
@@ -482,10 +482,10 @@ namespace ChaosEdition
 
     public class RunFast : PlayerCode
     {
-        public override int MaxLengthSeconds => 180;
-        public override int MinLengthSeconds => 60;
+        public override int? MaxLengthSeconds => 180;
+        public override int? MinLengthSeconds => 60;
 
-        public override int NextExtraDelaySeconds => 5;
+        public override int? NextExtraDelaySeconds => 5;
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             player.powerrun = true;
@@ -494,9 +494,9 @@ namespace ChaosEdition
 
     public class PlayerFloat : PlayerCode
     {
-        public override int MaxLengthSeconds => 30;
-        public override int MinLengthSeconds => 20;
-        public override int NextExtraDelaySeconds => 10;
+        public override int? MaxLengthSeconds => 30;
+        public override int? MinLengthSeconds => 20;
+        public override int? NextExtraDelaySeconds => 10;
         public override float SelectionWeight => 0.90f;
 
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
@@ -507,9 +507,9 @@ namespace ChaosEdition
 
     public class GravityStrength : PlayerCode
     {
-        public override int MaxLengthSeconds => 30;
-        public override int MinLengthSeconds => 20;
-        public override int NextExtraDelaySeconds => 10;
+        public override int? MaxLengthSeconds => 30;
+        public override int? MinLengthSeconds => 20;
+        public override int? NextExtraDelaySeconds => 10;
 
         public override float SelectionWeight => 1.1f;
 
@@ -525,9 +525,9 @@ namespace ChaosEdition
     //still broken in MP and only teleports host
     public class RandomTeleport : PlayerCode
     {
-        public override int MaxLengthSeconds => 1;
-        public override int MinLengthSeconds => 1;
-        public override int NextExtraDelaySeconds => 40;
+        public override int? MaxLengthSeconds => 1;
+        public override int? MinLengthSeconds => 1;
+        public override int? NextExtraDelaySeconds => 40;
         public override float SelectionWeight => 0.90f;
 
         private List<int> teleportedList = new();
@@ -570,10 +570,10 @@ namespace ChaosEdition
 
     public class SmileGhost : PlayerCode
     {
-        public override int MaxLengthSeconds => 3;
-        public override int MinLengthSeconds => 3;
+        public override int? MaxLengthSeconds => 3;
+        public override int? MinLengthSeconds => 3;
 
-        public override int NextExtraDelaySeconds => 40;
+        public override int? NextExtraDelaySeconds => 40;
 
         public override float SelectionWeight => 0.5f;
 
@@ -681,9 +681,9 @@ namespace ChaosEdition
         TileID.LunarOre
         };
 
-        public override int MaxLengthSeconds => 240;
-        public override int MinLengthSeconds => 60;
-        public override int NextExtraDelaySeconds => -10;
+        public override int? MaxLengthSeconds => 240;
+        public override int? MinLengthSeconds => 60;
+        public override int? NextExtraDelaySeconds => -10;
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)//serverside
@@ -715,10 +715,10 @@ namespace ChaosEdition
     //TODO: make lead to gold and ores to lead effect ore bricks if destructive is on
     public class LeadToGold : PlayerCode
     {
-        public override int MaxLengthSeconds => 200;
-        public override int MinLengthSeconds => 45;
+        public override int? MaxLengthSeconds => 200;
+        public override int? MinLengthSeconds => 45;
 
-        public override int NextExtraDelaySeconds => -12;
+        public override int? NextExtraDelaySeconds => -12;
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)//serverside
@@ -750,10 +750,10 @@ namespace ChaosEdition
 
     public class CloudScroll : PlayerCode
     {
-        public override int MaxLengthSeconds => 10;
-        public override int MinLengthSeconds => 3;
+        public override int? MaxLengthSeconds => 10;
+        public override int? MinLengthSeconds => 3;
 
-        public override int NextExtraDelaySeconds => -5;
+        public override int? NextExtraDelaySeconds => -5;
 
         bool ran = false;
         Vector2 pos;
@@ -775,10 +775,10 @@ namespace ChaosEdition
     #region player drawing
     public class RandomPlayerLayerColors : PlayerCode
     {
-        public override int MaxLengthSeconds => 360;
-        public override int MinLengthSeconds => 60;
+        public override int? MaxLengthSeconds => 360;
+        public override int? MinLengthSeconds => 60;
 
-        public override int NextExtraDelaySeconds => -16;
+        public override int? NextExtraDelaySeconds => -16;
 
         bool ran = false;
 
@@ -873,10 +873,10 @@ namespace ChaosEdition
 
     public class PlayerFloatyRotate : PlayerCode
     {
-        public override int MaxLengthSeconds => 160;
-        public override int MinLengthSeconds => 30;
+        public override int? MaxLengthSeconds => 160;
+        public override int? MinLengthSeconds => 30;
 
-        public override int NextExtraDelaySeconds => -16;
+        public override int? NextExtraDelaySeconds => -16;
 
         public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo)
         {
@@ -888,10 +888,10 @@ namespace ChaosEdition
 
     public class ExtendedWingTime : PlayerCode
     {
-        public override int MaxLengthSeconds => 180;
-        public override int MinLengthSeconds => 60;
+        public override int? MaxLengthSeconds => 180;
+        public override int? MinLengthSeconds => 60;
 
-        public override int NextExtraDelaySeconds => 0;
+        public override int? NextExtraDelaySeconds => 0;
 
         public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
         {
@@ -903,9 +903,9 @@ namespace ChaosEdition
     #region cheaty
     public class DupeHeldItemRandom : PlayerCode
     {
-        public override int MaxLengthSeconds => 100;
-        public override int MinLengthSeconds => 40;
-        public override int NextExtraDelaySeconds => 7;
+        public override int? MaxLengthSeconds => 100;
+        public override int? MinLengthSeconds => 40;
+        public override int? NextExtraDelaySeconds => 7;
         public override float SelectionWeight => 0.8f;
         public override CodeFlags Flags => CodeFlags.Cheaty;
 
@@ -932,9 +932,9 @@ namespace ChaosEdition
 
     public class AlwaysDupeOneSlot : PlayerCode
     {
-        public override int MaxLengthSeconds => 100;
-        public override int MinLengthSeconds => 30;
-        public override int NextExtraDelaySeconds => 5;
+        public override int? MaxLengthSeconds => 100;
+        public override int? MinLengthSeconds => 30;
+        public override int? NextExtraDelaySeconds => 5;
         public override float SelectionWeight => 0.8f;
         public override CodeFlags Flags => CodeFlags.Cheaty;
 

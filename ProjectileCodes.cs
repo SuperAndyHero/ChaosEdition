@@ -13,9 +13,9 @@ namespace ChaosEdition
 {
     public class FancyProjectileDeath : ProjectileCode
     {
-        public override int MaxLengthSeconds => 80;
+        public override int? MaxLengthSeconds => 80;
 
-        public override int NextExtraDelaySeconds => -20;
+        public override int? NextExtraDelaySeconds => -20;
 
         public override void OnKill(Projectile projectile, int timeLeft)
         {
@@ -43,10 +43,10 @@ namespace ChaosEdition
 
     public class PlayerProjectileHoming : ProjectileCode
     {
-        public override int MaxLengthSeconds => 65;
-        public override int MinLengthSeconds => 45;
+        public override int? MaxLengthSeconds => 65;
+        public override int? MinLengthSeconds => 45;
 
-        public override int NextExtraDelaySeconds => 5;
+        public override int? NextExtraDelaySeconds => 5;
 
         public override void AI(Projectile projectile)
         {
@@ -63,10 +63,10 @@ namespace ChaosEdition
 
     public class PlayerProjectileRepel : ProjectileCode
     {
-        public override int MaxLengthSeconds => 65;
-        public override int MinLengthSeconds => 45;
+        public override int? MaxLengthSeconds => 65;
+        public override int? MinLengthSeconds => 45;
 
-        public override int NextExtraDelaySeconds => 5;
+        public override int? NextExtraDelaySeconds => 5;
 
 
         public override void AI(Projectile projectile)
@@ -84,10 +84,10 @@ namespace ChaosEdition
 
     public class PlayerProjectileOrbit : ProjectileCode
     {
-        public override int MaxLengthSeconds => 95;
-        public override int MinLengthSeconds => 45;
+        public override int? MaxLengthSeconds => 95;
+        public override int? MinLengthSeconds => 45;
 
-        public override int NextExtraDelaySeconds => 20;
+        public override int? NextExtraDelaySeconds => 20;
 
         [NetSync]
         public bool dir = Main.rand.NextBool();
@@ -110,11 +110,11 @@ namespace ChaosEdition
     //TODO: sync npc creation
     public class ProjectilesIntoCritters : ProjectileCode
     {
-        public override int MaxLengthSeconds => 35;
+        public override int? MaxLengthSeconds => 35;
 
-        public override int MinLengthSeconds => 15;
+        public override int? MinLengthSeconds => 15;
 
-        public override int NextExtraDelaySeconds => 10;
+        public override int? NextExtraDelaySeconds => 10;
 
         //these are not synced since the client does not need them
         public int critterType = PickRandomCritter();

@@ -83,7 +83,6 @@ namespace ChaosEdition.Npcs
                 return false;
             }
         }
-
         public virtual float maxspeed => 2.5f;
         public virtual float velrotinc => 0.8f;
         public virtual float speedinc => 0.03f;
