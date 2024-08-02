@@ -958,5 +958,24 @@ namespace ChaosEdition
         }
 
     }
+
+    public class BackwardsLongJump : PlayerCode
+    {
+        public override float MaxLength => 2.5f;
+        public override float MinLength => 1;
+
+        public override void PreUpdatePlayer(Player player, ModPlayer modPlayer = null)
+        {
+            //Main.NewText(player.jump + " dir");
+            if((player.direction == 1) != (player.velocity.X > 0))
+            {
+                if(player.justJumped)
+                    player.velocity.X *= 1.115f;
+                else
+                    player.velocity.X *= 1.0147f;
+            }
+        }
+
+    }
     #endregion 
 }

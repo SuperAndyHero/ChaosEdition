@@ -85,6 +85,7 @@ namespace ChaosEdition
         public static bool   ConfigDrawFullCodeList = false;
 
         public static int    ConfigDelayBetweenCodes = DefaultDelayBetweenCodes;
+        //public static float  ConfigEffectLengthMult = 1;
         public static float  ConfigCodeLengthMult = 1;
 
         //serverside

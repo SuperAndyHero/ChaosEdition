@@ -42,17 +42,22 @@ namespace ChaosEdition.Npcs
         public virtual string musicstring => "ChaosEdition/Npcs/smileghost";
         public virtual int AdditionalTimeMinimum => 0;
 
-        public override void OnSpawn(IEntitySource source)
-        {
-            NPC.ai[0] = Main.rand.Next((25 + AdditionalTimeMinimum) * 20, 150 * 20);
-            soundStyleIgniteLoop = new SoundStyle(musicstring)
-            {
-                IsLooped = true,
-                SoundLimitBehavior = SoundLimitBehavior.ReplaceOldest,
-                Volume = 0.65f,
-                MaxInstances = 0
-            };
-        }
+        bool OnSpawnMultiplayerCheck = false;
+
+        //public override void OnSpawn(IEntitySource source)
+        //{
+        //    NPC.ai[0] = Main.rand.Next((25 + AdditionalTimeMinimum) * 20, 150 * 20);
+        //    Terraria.Chat.ChatHelper.BroadcastChatMessage(Terraria.Localization.NetworkText.FromLiteral(musicstring), Color.AliceBlue);
+        //   soundStyleIgniteLoop = new SoundStyle(musicstring)
+        //    {
+        //        IsLooped = true,
+        //        SoundLimitBehavior = SoundLimitBehavior.ReplaceOldest,
+        //        Volume = 0.65f,
+        //        MaxInstances = 0
+        //    };
+        //    OnSpawnMultiplayerCheck = true;
+        //    Terraria.Chat.ChatHelper.BroadcastChatMessage(Terraria.Localization.NetworkText.FromLiteral(soundStyleIgniteLoop.SoundPath), Color.AntiqueWhite);
+        //}
 
         const float maxSpeed = 2.5f;
         const int fadeoutTime = 180;
@@ -89,6 +94,20 @@ namespace ChaosEdition.Npcs
 
         public override void AI()
         {
+            if(OnSpawnMultiplayerCheck == false)
+            {
+                NPC.ai[0] = Main.rand.Next((25 + AdditionalTimeMinimum) * 20, 150 * 20);
+                soundStyleIgniteLoop = new SoundStyle(musicstring)
+                {
+                    IsLooped = true,
+                    SoundLimitBehavior = SoundLimitBehavior.ReplaceOldest,
+                    Volume = 0.65f,
+                    MaxInstances = 0
+                };
+                OnSpawnMultiplayerCheck = true;
+            }
+
+            //if (Main.netMode != NetmodeID.Server && soundStyleIgniteLoop.SoundPath != null) {
             if (!SoundEngine.TryGetActiveSound(soundSlot, out var _))
             {
                 var tracker = new NPCAudioTracker(NPC);
@@ -98,7 +117,10 @@ namespace ChaosEdition.Npcs
                     soundInstance.Position = NPC.position;
                     return tracker.IsActiveAndInGame();
                 });
+
+                //soundSlot = SoundEngine.PlaySound(soundStyleIgniteLoop, NPC.position);
             }
+            //}
 
             NPC.ai[1]++;//used for tilt
 

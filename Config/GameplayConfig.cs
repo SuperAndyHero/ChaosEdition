@@ -20,15 +20,20 @@ namespace ChaosEdition.Configs
 
         [Increment(1)]
         [Range(2, 600)]
-        public int DelayBetweenEffects { get { return ChaosEdition.ConfigDelayBetweenCodes; } set { ChaosEdition.ConfigDelayBetweenCodes = value; } }        [Increment(1)]
+        [Tooltip("Length of effects is scaled by this")]
+        public int DelayBetweenEffects { get { return ChaosEdition.ConfigDelayBetweenCodes; } set { ChaosEdition.ConfigDelayBetweenCodes = value; } }
 
-        int a = 1;//fixes a weird issue with the above incement attribute counting to the below option
+        //[Range(0.1f, 20)]
+        //public float EffectLengthMultiplier { get { return ChaosEdition.ConfigEffectLengthMult; } set { ChaosEdition.ConfigEffectLengthMult = value; } }
+
+
+        //int a = 1;//fixes a weird issue with the above incement attribute counting to the below option
 
         //[Increment(1)]
-        [Range(0.25f, 8f), Increment(0.25f)]
+        [Range(0.1f, 20f)]//, Increment(0.25f)]
         [DefaultValue(1)]
-        [Slider]
-        [DrawTicks]
+        //[Slider]
+        //[DrawTicks]
         public float ConfigLengthMultiplier { get { return ChaosEdition.ConfigCodeLengthMult; } set { ChaosEdition.ConfigCodeLengthMult = value; } }
     }
 }
