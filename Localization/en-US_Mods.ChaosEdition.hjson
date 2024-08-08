@@ -3,6 +3,11 @@ Items: {
 		DisplayName: Test Item
 		Tooltip: ""
 	}
+
+	SmileGhostSummon: {
+		DisplayName: Smile Ghost Summon
+		Tooltip: ""
+	}
 }
 
 NPCs: {

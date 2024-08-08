@@ -96,7 +96,7 @@ namespace ChaosEdition.Npcs
         {
             if(OnSpawnMultiplayerCheck == false)
             {
-                NPC.ai[0] = Main.rand.Next((25 + AdditionalTimeMinimum) * 20, 150 * 20);
+                NPC.ai[0] = Main.rand.Next((75 + AdditionalTimeMinimum) * 20, 200 * 20);
                 soundStyleIgniteLoop = new SoundStyle(musicstring)
                 {
                     IsLooped = true,
@@ -161,7 +161,7 @@ namespace ChaosEdition.Npcs
 
         public override void HitEffect(NPC.HitInfo hit)
         {
-            NPC.ai[0] += (hit.Damage) * 3;
+            NPC.ai[0] += (hit.Damage) * 5;
         }
 
         public override void DrawEffects(ref Color drawColor)
