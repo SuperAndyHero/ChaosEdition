@@ -28,6 +28,7 @@ namespace ChaosEdition.Npcs
 
         public override void OnKill()
         {
+            Projectile.NewProjectile(NPC.GetSource_Death(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<Projectiles.Explosion>(), 0, 0);
             Item.NewItem(NPC.GetSource_Loot(), NPC.Center, ItemID.MeowmereMinecart);
         }
     }

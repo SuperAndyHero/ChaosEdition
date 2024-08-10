@@ -118,3 +118,5 @@ Configs: {
 		}
 	}
 }
+
+Projectiles.Explosion.DisplayName: Explosion

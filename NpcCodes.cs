@@ -148,4 +148,25 @@ namespace ChaosEdition
             //SoundEngine.PlaySound(SoundID.AbigailAttack, target.position);//look for squeaky sound later
         }
     }
+
+    public class ExplosionOnNpcDeath : NpcCode
+    {
+        public override float MaxLength => 3.2f;
+        public override float MinLength => 0.75f;
+        public override float NextExtraDelay => -0.33f;
+
+        public override float SelectionWeight => 0.04f;
+
+
+        [NetSync]
+        public int chance = Main.rand.NextBool(10) ? 1 : Main.rand.Next(1, 40);
+
+        public override void OnKill(NPC npc)
+        {
+            if (Main.rand.NextBool(chance))
+            {
+                Projectile.NewProjectile(Projectile.GetSource_None(), npc.Center, Vector2.Zero, ModContent.ProjectileType<Projectiles.Explosion>(), 0, 0);
+            }
+        }
+    }
 }

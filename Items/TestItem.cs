@@ -44,7 +44,7 @@ namespace ChaosEdition.Items
 					//new RandomItemFiresale();
 					//new MakeOneItemHuge();
 					//new ChristmasGift();
-					new SmileGhost();
+					new ExplosionOnNpcDeath();
 
                     //ChaosEdition.CurrentExtraDelay = new TimeSpan(0, 0, 0);
                     //ChaosEdition.TimeLastCodeSelected = DateTime.Now.Subtract(new TimeSpan(0, 0, ChaosEdition.DefaultDelayBetweenCodes));

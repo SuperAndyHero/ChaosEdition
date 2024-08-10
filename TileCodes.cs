@@ -139,6 +139,36 @@ namespace ChaosEdition
         }
     }
 
+    public class ExplosionOnTileBreak : TileCode
+    {
+
+        public override float MaxLength => 3;
+        public override float MinLength => 0.5f;
+        public override float NextExtraDelay => -0.33f;
+
+        public override float SelectionWeight => 0.075f;
+
+        [NetSync]
+        public int chance = Main.rand.Next(1, 101);
+
+        public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
+        {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
+
+            if (Main.rand.NextBool(chance))
+            {
+                Vector2 pos = new Vector2((i * 16) + 8, j * 16);
+                Vector2 playerPos = HelperMethods.NearestPlayerCenter(pos);
+
+                if (pos.Distance(playerPos) < 1000)
+                {
+                    Projectile.NewProjectile(Projectile.GetSource_None(), new Vector2((int)pos.X, (int)pos.Y), Vector2.Zero, ModContent.ProjectileType<Projectiles.Explosion>(), 0, 0);
+                }
+            }
+        }
+    }
+
     public class SkeletonsFromGraves : TileCode
     {
 
